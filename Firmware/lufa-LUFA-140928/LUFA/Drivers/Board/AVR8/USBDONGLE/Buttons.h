@@ -29,29 +29,32 @@
 */
 
 /** \file
- *  \brief Board specific information header for the Arduino Leonardo board.
- *  \copydetails Group_BoardInfo_LEONARDO
+ *  \brief Board specific Buttons driver header for the Atmel USBDONGLE.
+ *  \copydetails Group_Buttons_USBDONGLE
  *
- *  \note This file should not be included directly. It is automatically included as needed by the Board driver
- *        dispatch header located in LUFA/Drivers/Board/Board.h.
+ *  \note This file should not be included directly. It is automatically included as needed by the Buttons driver
+ *        dispatch header located in LUFA/Drivers/Board/Buttons.h.
  */
 
-/** \ingroup Group_BoardInfo
- *  \defgroup Group_BoardInfo_LEONARDO LEONARDO
- *  \brief Board specific information header for the Arduino Leonardo board.
+/** \ingroup Group_Buttons
+ *  \defgroup Group_Buttons_USBDONGLE USBDONGLE
+ *  \brief Board specific Buttons driver header for the Atmel USBDONGLE.
  *
- *  Board specific information header for the Arduino Leonardo board (http://arduino.cc/en/Main/arduinoBoardLeonardo).
+ *  Board specific Buttons driver header for the Atmel USBDONGLE.
+ *
+ *  <table>
+ *    <tr><th>Name</th><th>Info</th><th>Active Level</th><th>Port Pin</th></tr>
+ *    <tr><td>BUTTONS_BUTTON1</td><td>HWB Button</td><td>Low</td><td>PORTD.7</td></tr>
+ *  </table>
  *
  *  @{
  */
 
-#ifndef __BOARD_LEONARDO_H__
-#define __BOARD_LEONARDO_H__
+#ifndef __BUTTONS_USBDONGLE_H__
+#define __BUTTONS_USBDONGLE_H__
 
 	/* Includes: */
 		#include "../../../../Common/Common.h"
-		#include "../../LEDs.h"
-		#include "../../Buttons.h"
 
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
@@ -59,16 +62,35 @@
 		#endif
 
 	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_BOARD_H)
-			#error Do not include this file directly. Include LUFA/Drivers/Board/Board.h instead.
+		#if !defined(__INCLUDE_FROM_BUTTONS_H)
+			#error Do not include this file directly. Include LUFA/Drivers/Board/Buttons.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
-			/** Indicates the board has hardware Buttons mounted. */
-			#define BOARD_HAS_BUTTONS
-			/** Indicates the board has hardware LEDs mounted. */
-			#define BOARD_HAS_LEDS
+			/** Button mask for the first button on the board. */
+			#define BUTTONS_BUTTON1      (1 << 7)
+
+		/* Inline Functions: */
+		#if !defined(__DOXYGEN__)
+			static inline void Buttons_Init(void)
+			{
+				DDRD  &= ~BUTTONS_BUTTON1;
+				PORTD |=  BUTTONS_BUTTON1;
+			}
+
+			static inline void Buttons_Disable(void)
+			{
+				DDRD  &= ~BUTTONS_BUTTON1;
+				PORTD &= ~BUTTONS_BUTTON1;
+			}
+
+			static inline uint8_t Buttons_GetStatus(void) ATTR_WARN_UNUSED_RESULT;
+			static inline uint8_t Buttons_GetStatus(void)
+			{
+				return ((PIND & BUTTONS_BUTTON1) ^ BUTTONS_BUTTON1);
+			}
+		#endif
 
 	/* Disable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)

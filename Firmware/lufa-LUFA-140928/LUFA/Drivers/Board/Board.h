@@ -143,6 +143,8 @@
 			#include "AVR8/OLIMEXT32U4/Board.h"
 		#elif (BOARD == BOARD_OLIMEXISPMK2)
 			#include "AVR8/OLIMEXISPMK2/Board.h"
+		#elif (BOARD == BOARD_USBDONGLE)
+			#include "AVR8/USBDONGLE/Board.h"
 		#elif (BOARD == BOARD_LEONARDO)
 			#include "AVR8/LEONARDO/Board.h"
 		#elif (BOARD == BOARD_UC3A3_XPLAINED)

@@ -12,16 +12,17 @@
 # Run "make help" for target help.
 
 #BOARD        = STK526
+ARCH         = AVR8
 
 #MCU          = at90usb162
-#ARCH         = AVR8
 #BOARD        = USBDONGLE
 #F_CPU        = 8000000
 
 MCU          = atmega32u4 
-ARCH         = AVR8
 BOARD        = LEONARDO 
 F_CPU        = 16000000
+
+
 F_USB        = $(F_CPU)
 OPTIMIZATION = s
 TARGET       = KeyboardMouseRaw

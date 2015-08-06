@@ -29,31 +29,31 @@
 */
 
 /** \file
- *  \brief Board specific LED driver header for the Arduino Leonardo board.
- *  \copydetails Group_LEDs_LEONARDO
+ *  \brief Board specific LED driver header for the Arduino USBDONGLE board.
+ *  \copydetails Group_LEDs_USBDONGLE
  *
  *  \note This file should not be included directly. It is automatically included as needed by the LEDs driver
  *        dispatch header located in LUFA/Drivers/Board/LEDs.h.
  */
 
 /** \ingroup Group_LEDs
- *  \defgroup Group_LEDs_LEONARDO LEONARDO
- *  \brief Board specific LED driver header for the Arduino Leonardo board.
+ *  \defgroup Group_LEDs_USBDONGLE USBDONGLE
+ *  \brief Board specific LED driver header for the Arduino USBDONGLE board.
  *
- *  Board specific LED driver header for the Arduino Leonardo board (http://arduino.cc/en/Main/arduinoBoardLeonardo).
+ *  Board specific LED driver header for the Arduino USBDONGLE board (http://arduino.cc/en/Main/arduinoBoardUSBDONGLE).
  *
  *  <table>
  *    <tr><th>Name</th><th>Color</th><th>Info</th><th>Active Level</th><th>Port Pin</th></tr>
- *    <tr><td>LEDS_LED1</td><td>Yellow</td><td>RX</td><td>Low</td><td>PORTB.0</td></tr>
- *    <tr><td>LEDS_LED2</td><td>Green</td><td>TX</td><td>Low</td><td>PORTD.5</td></tr>
- *    <tr><td>LEDS_LED3</td><td>Red</td><td>General Indicator</td><td>High</td><td>PORTC.7</td></tr>
+ *    <tr><td>LEDS_LED1</td><td>Green</td><td>General Indicator</td><td>High</td><td>PORTD.3</td></tr>
+ *    <tr><td>LEDS_LED2</td><td>Green</td><td>General Indicator</td><td>High</td><td>PORTB.2</td></tr>
+ *    <tr><td>LEDS_LED3</td><td>Yellow</td><td>General Indicator</td><td>High</td><td>PORTC.7</td></tr>
  *  </table>
  *
  *  @{
  */
 
-#ifndef __LEDS_LEONARDO_H__
-#define __LEDS_LEONARDO_H__
+#ifndef __LEDS_USBDONGLE_H__
+#define __LEDS_USBDONGLE_H__
 
 	/* Includes: */
 		#include "../../../../Common/Common.h"
@@ -71,24 +71,20 @@
 	/* Private Interface - For use in library only: */
 	#if !defined(__DOXYGEN__)
 		/* Macros: */
-			#define LEDS_PORTB_LEDS       (LEDS_LED1)
-			#define LEDS_PORTD_LEDS       (LEDS_LED2)
-			#define LEDS_PORTC_LEDS       (LEDS_LED3)
+			#define LEDS_PORTD_LEDS       (LEDS_LED1)
+			#define LEDS_PORTB_LEDS       (LEDS_LED2)
 	#endif
 
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** LED mask for the first LED on the board. */
-			#define LEDS_LED1        (1 << 0)
+			#define LEDS_LED1        (1 << 3)
 
 			/** LED mask for the second LED on the board. */
-			#define LEDS_LED2        (1 << 5)
-
-			/** LED mask for the third LED on the board. */
-			#define LEDS_LED3        (1 << 7)
+			#define LEDS_LED2        (1 << 2)
 
 			/** LED mask for all the LEDs on the board. */
-			#define LEDS_ALL_LEDS    (LEDS_LED1 | LEDS_LED2 | LEDS_LED3)
+			#define LEDS_ALL_LEDS    (LEDS_LED1 | LEDS_LED2)
 
 			/** LED mask for none of the board LEDs. */
 			#define LEDS_NO_LEDS     0
@@ -98,11 +94,9 @@
 			static inline void LEDs_Init(void)
 			{
 				DDRB  |=  LEDS_PORTB_LEDS;
-				PORTB &= ~LEDS_PORTB_LEDS;
+				PORTB |=  LEDS_PORTB_LEDS;
 				DDRD  |=  LEDS_PORTD_LEDS;
-				PORTD &= ~LEDS_PORTD_LEDS;
-				DDRC  |=  LEDS_PORTC_LEDS;
-				PORTC &= ~LEDS_PORTC_LEDS;
+				PORTD |=  LEDS_PORTD_LEDS;
 			}
 
 			static inline void LEDs_Disable(void)
@@ -111,50 +105,43 @@
 				PORTB &= ~LEDS_PORTB_LEDS;
 				DDRD  &= ~LEDS_PORTD_LEDS;
 				PORTD &= ~LEDS_PORTD_LEDS;
-				DDRC  &= ~LEDS_PORTC_LEDS;
-				PORTC &= ~LEDS_PORTC_LEDS;
 			}
 
 			static inline void LEDs_TurnOnLEDs(const uint8_t LEDMask)
 			{
 				PORTB |=  (LEDMask & LEDS_PORTB_LEDS);
 				PORTD |=  (LEDMask & LEDS_PORTD_LEDS);
-				PORTC |=  (LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline void LEDs_TurnOffLEDs(const uint8_t LEDMask)
 			{
 				PORTB &= ~(LEDMask & LEDS_PORTB_LEDS);
 				PORTD &= ~(LEDMask & LEDS_PORTD_LEDS);
-				PORTC &= ~(LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline void LEDs_SetAllLEDs(const uint8_t LEDMask)
 			{
-				PORTB = ((PORTB & ~LEDS_PORTB_LEDS) |  (LEDMask & LEDS_PORTB_LEDS));
-				PORTD = ((PORTD & ~LEDS_PORTD_LEDS) |  (LEDMask & LEDS_PORTD_LEDS));
-				PORTC = ((PORTC & ~LEDS_PORTC_LEDS) |  (LEDMask & LEDS_PORTC_LEDS));
+				PORTB = ((PORTB |  LEDS_PORTB_LEDS) & ~(LEDMask & LEDS_PORTB_LEDS));
+				PORTD = ((PORTD |  LEDS_PORTD_LEDS) & ~(LEDMask & LEDS_PORTD_LEDS));
 			}
 
 			static inline void LEDs_ChangeLEDs(const uint8_t LEDMask,
 			                                   const uint8_t ActiveMask)
 			{
-				PORTB = ((PORTB & ~(LEDMask & LEDS_PORTB_LEDS)) |  (ActiveMask & LEDS_PORTB_LEDS));
-				PORTD = ((PORTD & ~(LEDMask & LEDS_PORTD_LEDS)) |  (ActiveMask & LEDS_PORTD_LEDS));
-				PORTC = ((PORTC & ~(LEDMask & LEDS_PORTC_LEDS)) |  (ActiveMask & LEDS_PORTC_LEDS));
+				PORTB = ((PORTB |  (LEDMask & LEDS_PORTB_LEDS)) & ~(ActiveMask & LEDS_PORTB_LEDS));
+				PORTD = ((PORTD |  (LEDMask & LEDS_PORTD_LEDS)) & ~(ActiveMask & LEDS_PORTD_LEDS));
 			}
 
 			static inline void LEDs_ToggleLEDs(const uint8_t LEDMask)
 			{
 				PINB  = (LEDMask & LEDS_PORTB_LEDS);
 				PIND  = (LEDMask & LEDS_PORTD_LEDS);
-				PINC  = (LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline uint8_t LEDs_GetLEDs(void) ATTR_WARN_UNUSED_RESULT;
 			static inline uint8_t LEDs_GetLEDs(void)
 			{
-				return ((PORTB & LEDS_PORTB_LEDS) | (PORTD & LEDS_PORTD_LEDS) | (PORTC & LEDS_PORTC_LEDS));
+				return ((~PORTB & LEDS_PORTB_LEDS) | (~PORTD & LEDS_PORTD_LEDS) );
 			}
 		#endif
 

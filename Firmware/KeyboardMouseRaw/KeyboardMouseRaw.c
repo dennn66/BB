@@ -473,30 +473,15 @@ void ReadConfig(void){
 
 
 
-/*
-#define X_IS_NEG  (mstat & (1<<PS2_MOUSE_X_SIGN))
-#define Y_IS_NEG  (mstat & (1<<PS2_MOUSE_Y_SIGN))
-#define X_IS_OVF  (mstat & (1<<PS2_MOUSE_X_OVFLW))
-#define Y_IS_OVF  (mstat & (1<<PS2_MOUSE_Y_OVFLW))
-*/
-
 /** Main program entry point. This routine contains the overall program flow, including initial
  *  setup of all components and the main program loop.
  */
 int main(void)
 {
 
-/*
-	uint8_t mstat;
-	int8_t mx;
-	int8_t my;
-	static uint8_t buttons_prev = 0;
-*/
-	/* receives packet from mouse */
-//	uint8_t rcv;
+	static uint16_t last_led_timer = 0;
 
 	SetupHardware();
-	//	LEDs_TurnOnLEDs(LEDS_ALL_LEDS);
 
 	((USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer)->Modifier =	0;
 	//ReadConfig();
@@ -514,50 +499,11 @@ int main(void)
 			deviceState = 1-deviceState;
 		}
 		prevButton1State = Button1State;
-/*
-		if(expectMouseReport == 0 ){
-			GlobalInterruptDisable();
-			PS2_write(PS2_MOUSE_READ_DATA);
-			rcv = PS2_read(); //Ack
-			if (rcv == PS2_ACK) {
-				mstat = PS2_read();
-				mx = PS2_read();
-				my = PS2_read();
+		
+		led_indicator_task(timer_elapsed(last_led_timer));
+		spam_buttons_task(timer_elapsed(last_led_timer));
+		last_led_timer = timer_read();
 
-				// if mouse moves or buttons state changes /
-				if (mx || my || ((mstat ^ buttons_prev) & PS2_MOUSE_BTN_MASK)) {
-					buttons_prev = mstat;
-
-					// PS/2 mouse data is '9-bit integer'(-256 to 255) which is comprised of sign-bit and 8-bit value.
-					// bit: 8    7 ... 0
-					//      sign \8-bit/
-					//
-					// Meanwhile USB HID mouse indicates 8bit data(-127 to 127), note that -128 is not used.
-					//
-					// This converts PS/2 data into HID value. Use only -127-127 out of PS/2 9-bit.
-					mx = X_IS_NEG ?
-							  ((!X_IS_OVF && -127 <= mx && mx <= -1) ?  mx : -127) :
-							  ((!X_IS_OVF && 0 <= mx && mx <= 127) ? mx : 127);
-					my = Y_IS_NEG ?
-							  ((!Y_IS_OVF && -127 <= my && my <= -1) ?  my : -127) :
-							  ((!Y_IS_OVF && 0 <= my && my <= 127) ? my : 127);
-
-					// remove sign and overflow flags
-					mstat &= PS2_MOUSE_BTN_MASK;
-
-					// invert coordinate of y to conform to USB HID mouse
-					my = -my;
-					report_mouse_t* newMouseReport = 			  (report_mouse_t*)newMouseHIDReportBuffer;
-					
-					newMouseReport->x = mx;
-					newMouseReport->y = my;
-					newMouseReport->buttons =mstat; //|= (1 << 0);
-					expectMouseReport = 1;
-				}
-			}
-			GlobalInterruptEnable();
-		}
-*/
 		ps2_mouse_task();
 		HID_Device_USBTask(&Keyboard_HID_Interface);
 		HID_Device_USBTask(&Mouse_HID_Interface);
@@ -579,13 +525,13 @@ PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
 }
 
 //ISR(TIMER0_COMPA_vect, ISR_BLOCK)
-void led_indicator_task(void)
+void led_indicator_task(uint16_t time_delta)
 {
 	//Button_Task_Sheduler_t * PrevButton;
 
 	// Control device state LED
 	if(deviceState == 0){
-		toggleCounter+=5;
+		toggleCounter+=time_delta;
 		if(toggleCounter >= TOGGLEIDLE){
 			LEDs_ToggleLEDs(LEDS_LED2);
 			toggleCounter = 0;
@@ -595,7 +541,7 @@ void led_indicator_task(void)
 	}
 }
 
-void spam_buttons_task(void)
+void spam_buttons_task(uint16_t time_delta)
 {
 	Button_Task_Sheduler_t * Button;
 	//Check Host communication timeout
@@ -607,19 +553,19 @@ void spam_buttons_task(void)
 		UpdateCounter = UPDATETIMEOUT;
 		LEDs_TurnOffLEDs(LEDS_LED2);
 	} else {
-		UpdateCounter+=5;
+		UpdateCounter+=time_delta;
 	}
 
 	//Decrease button timers
 	Button = Buttons;
 	while(Button != 0){
  
-		Button->timer= (Button->timer <5) ? 0: Button->timer-5;
+		Button->timer= (Button->timer <time_delta) ? 0: Button->timer-time_delta;
 		Button = (Button_Task_Sheduler_t *) Button->NextTask;
 	}
 
 	//Decrease absolute timeout timer
-	PauseTimer = (PauseTimer <5) ? 0: PauseTimer-5;
+	PauseTimer = (PauseTimer <time_delta) ? 0: PauseTimer-time_delta;
 	
 	//Prepare Keyboard and mouse reports
 	if((expectMouseReport == 0)&& (expectKeyboardReport == 0) ){
@@ -663,6 +609,7 @@ void SetupHardware()
 	Buttons_Init();
 	LEDs_Init();
 	USB_Init();
+	timer_init();
 
 	mouse_driver.send_mouse = &PS2_to_USB_mouse_send;
 	host_set_driver(&mouse_driver);
@@ -679,7 +626,6 @@ void SetupHardware()
             LEDs_TurnOnLEDs(LEDS_LED3);
             LEDs_TurnOnLEDs(LEDS_LED2);
         } 
-	_delay_ms(5000);
 
 }
 

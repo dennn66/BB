@@ -99,8 +99,6 @@
 			#include "AVR8/USBKEY/Buttons.h"
 		#elif (BOARD == BOARD_STK525)
 			#include "AVR8/STK525/Buttons.h"
-		#elif (BOARD == BOARD_LEONARDO)
-			#include "AVR8/LEONARDO/Buttons.h"
 		#elif (BOARD == BOARD_STK526)
 			#include "AVR8/STK526/Buttons.h"
 		#elif (BOARD == BOARD_ATAVRUSBRF01)
@@ -161,8 +159,12 @@
 			#include "XMEGA/C3_XPLAINED/Buttons.h"
 		#elif (BOARD == BOARD_U2S)
 			#include "AVR8/U2S/Buttons.h"
+		#elif (BOARD == BOARD_LEONARDO)
+			#include "AVR8/LEONARDO/Buttons.h"
+		#elif (BOARD == BOARD_USBDONGLE)
+			#include "AVR8/USBDONGLE/Buttons.h"
 		#else
-			#include "Board/Buttons.h"
+			#include "Buttons.h"
 		#endif
 
 	/* Pseudo-Functions for Doxygen: */

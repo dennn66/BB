@@ -193,6 +193,8 @@
 			#include "AVR8/OLIMEXT32U4/LEDs.h"
 		#elif (BOARD == BOARD_OLIMEXISPMK2)
 			#include "AVR8/OLIMEXISPMK2/LEDs.h"
+		#elif (BOARD == BOARD_USBDONGLE)
+			#include "AVR8/USBDONGLE/LEDs.h"
 		#elif (BOARD == BOARD_LEONARDO)
 			#include "AVR8/LEONARDO/LEDs.h"
 		#elif (BOARD == BOARD_UC3A3_XPLAINED)
