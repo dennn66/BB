@@ -208,28 +208,26 @@ Global $hDevice
 ;Test()
 ;if GetHIDGUID() Then ConsoleWrite(_GetHIDDevInstByVidPid (0x03EB, 0x204F))
 
-$test1 = 3.5
-ConsoleWrite($test1 & @LF)
-$test2 = Round($test1, 0)
-ConsoleWrite($test2 & @LF)
-$test3 = $test2 / 1000
-ConsoleWrite($test3 & @LF)
-
 Func HIDConsoleWrite($dbgStr)
 	if $HIDDebug == 1 Then ConsoleWrite($dbgStr)
 EndFunc
 
 Func Test()
 	if GetHIDGUID() Then
-		$HIDDebug =0
+		$HIDDebug =1
 		While ((_GetHIDDevInstByVidPid (0x03EB, 0x204D) <> 1))
 		   ConsoleWrite(".")
 		WEnd
+		 MsgBox(0,"Dongle","Found ")
+
+		$HIDDebug = 1
 		$hDevice = OpenHID($strDev)
-$HIDDebug = 0
+		 MsgBox(0,"Dongle","Openned ")
+
 		;_GetHIDDevInstByVidPid(0x4242, 0x6857)
 		;_GetHIDDevInstByVidPid(0x16C0, 0x05DF)
 		SendCMD_DELETE_ALL()
+		 MsgBox(0,"Dongle","Nodes deleted ")
 		;SendCMD_ADD_NODE("3", 60, 4000) ;
 		;SendCMD_ADD_NODE_CONDITION("3", $t_playerHP, 40, 70)
 		;SendCMD_ADD_NODE_CONDITION("3", $t_MobHP, 102, 102)
@@ -250,8 +248,9 @@ $HIDDebug = 0
 			;SendCMD_ADD_NODE("{7}", 60, 4000) ;
 			;SendCMD_DELETE_ALL()
 			;SendCMD_SET_HPCPMP(50, 50, 50, 50)
-			SendCMD_ADD_NODE("MOUSELEFT", 60, 1000) ;
-			SendCMD_ADD_NODE("ENTER", 60, 1000) ;
+			;SendCMD_ADD_NODE("MOUSELEFT", 60, 1000) ;
+			SendCMD_ADD_NODE("3", 60, 1000, 0) ;
+		 MsgBox(0,"Dongle","Key added ")
 			;SendCMD_DELETE_ALL()
 			;SendCMD_READ_CONFIG()
 			;SendCMD_WRITE_CONFIG()
@@ -645,7 +644,9 @@ Func _GetHIDDevInstByVidPid($VID, $PID)
 						 If $WinAPI_Error <> 0 Then
 							 ;MsgBox(0,"HidD_GetAttributes","Error " & _WinAPI_GetLastError() & @CRLF & _WinAPI_GetLastErrorMessage()) ;Error 13: The data is invalid.
 							 HIDConsoleWrite("HidD_GetAttributes Error " & _WinAPI_GetLastError() & @CRLF & _WinAPI_GetLastErrorMessage()) ;Error 13: The data is invalid.
-						 Else
+						EndIf
+						;Else
+						if 1 Then
 							 If $res[0] Then
 								 HIDConsoleWrite(DllStructGetData($kbdAttributes, 'Size') & ' -> ')
 								 HIDConsoleWrite(hex(DllStructGetData($kbdAttributes, 'VendorID'), 4) & ' ?= ')

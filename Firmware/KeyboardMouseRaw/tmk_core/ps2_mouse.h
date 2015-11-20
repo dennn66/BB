@@ -47,6 +47,8 @@ enum MouseType_t
 #define PS2_MOUSE_BTN_LEFT      0
 #define PS2_MOUSE_BTN_RIGHT     1
 #define PS2_MOUSE_BTN_MIDDLE    2
+#define PS2_MOUSE_BTN_4th       3
+#define PS2_MOUSE_BTN_5th       4
 #define PS2_MOUSE_X_SIGN        4
 #define PS2_MOUSE_Y_SIGN        5
 #define PS2_MOUSE_X_OVFLW       6
@@ -77,6 +79,8 @@ uint8_t ps2_mouse_init(void);
 void ps2_mouse_task(void);
 void ps2_genius_mouse_task(void);
 void ps2_standard_mouse_task(void);
-
+void ps2_mie_mouse_task(void);
+void ps2_genius_mouse_task(void);
+uint8_t ps2_get_mouse_type(void);
 
 #endif
