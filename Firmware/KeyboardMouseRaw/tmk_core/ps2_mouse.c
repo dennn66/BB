@@ -31,8 +31,7 @@ static uint8_t ps2_mouse_type;
 static report_mouse_t mouse_report = {};
 
 
-static void print_usb_data(void);
-
+uint8_t ps2_get_mouse_type(void){ return ps2_mouse_type;}
 
 /* supports only 3 button mouse at this time */
 uint8_t ps2_mouse_init(void) {
@@ -43,26 +42,20 @@ uint8_t ps2_mouse_init(void) {
     _delay_ms(1000);    // wait for powering up
 
     // send Reset
-    rcv = ps2_host_send(0xFF);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xFF) != PS2_ACK) return ps2_mouse_type;
     // read completion code of BAT  (Basic Assurance Test) 
     rcv = ps2_host_recv_response();
     // read Device ID
     rcv = ps2_host_recv_response();
     if(rcv == STANDARD_ID) ps2_mouse_type = PS2_MOUSE_STANDARD;
+
     // try to switch to genius "netscroll optical" mouse (5 buttons)
-    rcv = ps2_host_send(0xE8);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0x03);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0xE6);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0xE6);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0xE6);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0xE9);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xE8) != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0x03) != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xE6) != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xE6) != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xE6) != PS2_ACK) return ps2_mouse_type;
+    if(ps2_host_send(0xE9) != PS2_ACK) return ps2_mouse_type;
     // get status byte
     rcv = ps2_host_recv_response();
     // get resolution
@@ -74,21 +67,14 @@ uint8_t ps2_mouse_init(void) {
     } else {
         //intellimouse compatible? Switch to 3-buttons mode
         //Send commad sequence
-        rcv = ps2_host_send(0xF3);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;
-        rcv = ps2_host_send(200);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;
-        rcv = ps2_host_send(0xF3);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;
-        rcv = ps2_host_send(100);
-        rcv = ps2_host_send(0xF3);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;
-        rcv = ps2_host_send(80);
-	//Check ID
-        rcv = ps2_host_send(0xF2);
- //       if(rcv != PS2_ACK) return ps2_mouse_type;
-        // get ID
+		if(ps2_host_send(0xF3) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(200) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(0xF3) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(100) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(0xF3) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(80) != PS2_ACK) return ps2_mouse_type;
+		if(ps2_host_send(0xF2) != PS2_ACK) return ps2_mouse_type;
+		//Check ID
         rcv = ps2_host_recv_response();
         if(rcv == MIE_ID) {
             ps2_mouse_type = PS2_MOUSE_MIE;
@@ -96,21 +82,21 @@ uint8_t ps2_mouse_init(void) {
     }
 
     // Set Resolution 8 count/mm 
-    rcv = ps2_host_send(0xE8);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(0x03);
-//    if(rcv != PS2_ACK) return ps2_mouse_type;
+	if(ps2_host_send(0xE8) != PS2_ACK) return ps2_mouse_type;
+	if(ps2_host_send(0x03) != PS2_ACK) return ps2_mouse_type;
+
     // Set Scaling 1:1
-    rcv = ps2_host_send(0xE6);
-    if(rcv != PS2_ACK) return ps2_mouse_type;
+	if(ps2_host_send(0xE6) != PS2_ACK) return ps2_mouse_type;
+
+    // Set Scaling 1:2
+//	if(ps2_host_send(0xE7) != PS2_ACK) return ps2_mouse_type;
+
     // Set Sample Rate 200
-    rcv = ps2_host_send(0xF3);
- //   if(rcv != PS2_ACK) return ps2_mouse_type;
-    rcv = ps2_host_send(200);
- //   if(rcv != PS2_ACK) return ps2_mouse_type;
+	if(ps2_host_send(0xF3) != PS2_ACK) return ps2_mouse_type;
+	if(ps2_host_send(200) != PS2_ACK) return ps2_mouse_type;
 
     // send Set Remote mode
-    rcv = ps2_host_send(0xF0);
+	if(ps2_host_send(0xF0) != PS2_ACK) return ps2_mouse_type;
 
     return ps2_mouse_type;
 }
@@ -153,6 +139,7 @@ void ps2_mie_mouse_task(void)
         mouse_report.h = 0;
     } else {
         //ps2_mouse: fail to get mouse packet
+		ps2_mouse_type = PS2_MOUSE_NONE;
         return;
     }
     mouse_report.buttons = (buttons & PS2_MOUSE_BTN_MASK);
@@ -201,9 +188,12 @@ void ps2_genius_mouse_task(void)
         mouse_report.h = 0;
     } else {
         //ps2_mouse: fail to get mouse packet
+		ps2_mouse_type = PS2_MOUSE_NONE;
         return;
     }
-    mouse_report.buttons = (buttons & PS2_MOUSE_BTN_MASK) | (X_IS_OVF>>3) | (Y_IS_OVF>>3);
+    mouse_report.buttons = (buttons & PS2_MOUSE_BTN_MASK) | 
+		((buttons & (1<<PS2_MOUSE_X_OVFLW))>>3) | 
+		((buttons & (1<<PS2_MOUSE_Y_OVFLW))>>3);
 
 
     /* if mouse moves or buttons state changes */

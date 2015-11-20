@@ -1,1 +1,1 @@
-avrdude -pm32u4 -cavr109 -P com10 -Uflash:w:KeyboardMouseRaw.hex:a
+D:\IDE\WinAVR-20100110\bin\avrdude -pm32u4 -cavr109 -P com12 -Uflash:w:KeyboardMouseRaw.hex:a

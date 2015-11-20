@@ -43,6 +43,10 @@
 
 	#define GENERIC_REPORT_SIZE       8
 	
+	#define OUT_REPORT_SIZE       8
+	#define IN_REPORT_SIZE        1
+
+	
 	/* Type Defines: */
 		/** Type define for the device configuration descriptor structure. This must be defined in the
 		 *  application code, as the configuration descriptor contains several sub-descriptors which

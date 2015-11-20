@@ -519,7 +519,7 @@
 		 *  \param[in] DataOUTUsage     Vendor Usage for the OUT report data, ranging from 0x00 to 0xFF.
 		 *  \param[in] NumBytes         Length of the data IN and OUT reports.
 		 */
-		#define HID_DESCRIPTOR_VENDOR(VendorPageNum, CollectionUsage, DataINUsage, DataOUTUsage, NumBytes) \
+		#define HID_DESCRIPTOR_VENDOR(VendorPageNum, CollectionUsage, DataINUsage, DataOUTUsage, InNumBytes, OutNumBytes) \
 			HID_RI_USAGE_PAGE(16, (0xFF00 | VendorPageNum)), \
 			HID_RI_USAGE(8, CollectionUsage),           \
 			HID_RI_COLLECTION(8, 0x01),                 \
@@ -527,13 +527,13 @@
 				HID_RI_LOGICAL_MINIMUM(8, 0x00),        \
 				HID_RI_LOGICAL_MAXIMUM(8, 0xFF),        \
 				HID_RI_REPORT_SIZE(8, 0x08),            \
-				HID_RI_REPORT_COUNT(8, NumBytes),       \
+				HID_RI_REPORT_COUNT(8, InNumBytes),       \
 				HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE), \
 				HID_RI_USAGE(8, DataOUTUsage),          \
 				HID_RI_LOGICAL_MINIMUM(8, 0x00),        \
 				HID_RI_LOGICAL_MAXIMUM(8, 0xFF),        \
 				HID_RI_REPORT_SIZE(8, 0x08),            \
-				HID_RI_REPORT_COUNT(8, NumBytes),       \
+				HID_RI_REPORT_COUNT(8, OutNumBytes),       \
 				HID_RI_OUTPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE | HID_IOF_NON_VOLATILE), \
 			HID_RI_END_COLLECTION(0)
 		//@}

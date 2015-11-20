@@ -1,1 +1,1 @@
-<pd><ViewState><e p="KeyboardMouse" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw\Config" x="false"></e><e p="KeyboardMouse\KeyboardMouseRaw\tmk_core" x="false"></e></ViewState></pd>
+<pd><ViewState><e p="KeyboardMouse" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw\Config" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw\tmk_core" x="true"></e><e p="KeyboardMouse\KeyboardMouseRaw\tmk_core\avr" x="true"></e></ViewState></pd>
