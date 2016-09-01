@@ -11,6 +11,15 @@ char* BoredomBreaker::StyleSheet[BARNUM+1] = {
     "QProgressBar::chunk {background: #7F7F7F ;}"
 };
 
+char* BoredomBreaker::StyleSheetCheckBox[5] = {
+    "QCheckBox::indicator  {background: #805300 ;}",  //YELLOW
+    "QCheckBox::indicator  {background: #881D18 ;}",  //RED
+    "QCheckBox::indicator  {background: #03327E ;}",  //BLUE
+    "QCheckBox::indicator  {background: #318A10 ;}",  //GREEN
+    "QCheckBox::indicator  {background: #7F7F7F ;}"   //GREY
+};
+
+
 BoredomBreaker::BoredomBreaker(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::BoredomBreaker)
@@ -23,7 +32,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     pb[idVP] = ui->barVP;
     pb[idMobHP] = ui->barMobHP;
     pb[idMobMP] = ui->barMobMP;
-
+    bModifier = false;
     for(int j = idCP; j < BARNUM; j++ ){
         pb[j]->setMaximum(100);
         pb[j]->setMinimum(0);
@@ -53,7 +62,31 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     }
     ui->chkbox_widget->setLayout(layout);
 
-    connect(ui->cbDongle, SIGNAL(clicked(bool)), SLOT(cbClicked(bool)));
+    QGridLayout *layout_2 = new QGridLayout;
+    QString key_label = "B";
+    QTextStream key_label_stream(&key_label);
+
+    group_enable[0] = 1;
+    for(int i = 1; i<CONDBNUM; i++){
+        group_enable[i] = 0;
+    }
+
+    for(int i=0;i<CONDBNUM;i++)
+    {
+        int j=0;
+        key_label = "B";
+        key_label_stream <<  i+1;
+        QGridLayout *sell  = new QGridLayout;
+        keyenable2[i] = new QCheckBox(key_label.toStdString().c_str());
+        sell->addWidget(keyenable2[i],0, 0);
+        keyenable2[i]->setChecked (group_enable[i]);
+        layout_2->addLayout(sell,i, j);
+    }
+    ui->chkbox_widget_2->setLayout(layout_2);
+
+    connect(ui->cbDongle, SIGNAL(clicked(bool)), SLOT(cbDongleClicked(bool)));
+    connect(ui->cbCtrl, SIGNAL(clicked(bool)), SLOT(cbCtrlShiftClicked(bool)));
+    connect(ui->cbShift, SIGNAL(clicked(bool)), SLOT(cbCtrlShiftClicked(bool)));
     connect(ui->pbLoadProject, SIGNAL(clicked()), SLOT(pbLoadProjectClicked()));
     connect(ui->pbSaveProject, SIGNAL(clicked()), SLOT(pbSaveProjectClicked()));
     connect(ui->pbLoad, SIGNAL(clicked()), SLOT(pbLoadClicked()));
@@ -70,22 +103,30 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
         connect(keyenable[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableClicked(bool)));
         connect(keysettings[i], SIGNAL(clicked()), SLOT(pbKeySettingsClicked()));
     }
-
+    for(int i = 0; i< CONDBNUM; i++){
+        connect(keyenable2[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
+    }
     dongle_thread = new QThread;
     dongle = new Dongle();
 
     dongle->moveToThread(dongle_thread);
     dongle_thread->start();
+    kb = SystemKeyboardReadWrite::instance();
+    kb->setConnected(true);
+
+
     //QObject::connect(dongle, SIGNAL(error(QString)), thread, SLOT(errorString(QString)));
 
     connect(dongle_thread, SIGNAL(started()), dongle, SLOT(process()));
     connect(dongle, SIGNAL(finished()), dongle_thread, SLOT(quit()));
     connect(dongle, SIGNAL(finished()), dongle, SLOT(deleteLater()));
     connect(dongle_thread, SIGNAL(finished()), dongle_thread, SLOT(deleteLater()));
+    connect(kb, SIGNAL(keyPressed(DWORD )), SLOT(keyGlobalPressed(DWORD)));
+    connect(kb, SIGNAL(keyReleased(DWORD)), SLOT(keyGlobalReleased(DWORD)));
 
-
-    connect(dongle, SIGNAL(showStatus(int, int)), this, SLOT(showDongleStatus(int, int)));
+    connect(dongle, SIGNAL(showStatus(int, int, int)), this, SLOT(showDongleStatus(int, int, int)));
     enumerateL2();
+
 }
 
 BoredomBreaker::~BoredomBreaker()
@@ -94,10 +135,68 @@ BoredomBreaker::~BoredomBreaker()
     delete ui;
 }
 
-void BoredomBreaker::cbClicked(bool checked){
+void BoredomBreaker::keyGlobalPressed(DWORD vkCode)
+{
+    switch(vkCode){
+    case 9:
+        bModifier = true;
+        break;
+     default:
+        break;
+    }
+
+
+}
+
+void BoredomBreaker::keyGlobalReleased(DWORD vkCode)
+{
+
+    QString label;
+
+    switch(vkCode){
+    case 9:
+        bModifier = false;
+        break;
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 123:
+        if(bModifier){
+            if(vkCode == 112)
+            {
+                toggleGroup(0);
+            } else if(vkCode == 113)
+            {
+                toggleGroup(1);
+            } else if(vkCode == 114)
+            {
+                toggleGroup(2);
+            } else if(vkCode == 115)
+            {
+                toggleGroup(3);
+            } else if(vkCode == 123)
+            {
+                dongle->doSetState(!ui->cbDongle->isChecked());
+            }
+        }
+        break;
+     default:
+        break;
+    }
+}
+
+
+void BoredomBreaker::cbDongleClicked(bool checked){
     qDebug("Checkbox: %d", checked);
     dongle->doSetState(checked);
 
+}
+
+void BoredomBreaker::cbCtrlShiftClicked(bool checked){
+    qDebug("Checkbox: %d", checked);
+
+    dongle->sendCMD_SET_MODIFIER(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
 }
 
 void BoredomBreaker::cmbCondSetListTextChanged(const QString &text){
@@ -127,6 +226,56 @@ void BoredomBreaker::cbKeyEnableClicked(bool checked){
             dongle->doSendKeyToDongle(i);
             //cmbWinListActivated(index);
         }
+    }
+}
+
+void BoredomBreaker::cbKeyEnableBxClicked(bool checked){
+    qDebug("BoredomBreaker::cbKeyEnableBxClicked(bool checked): %d", checked);
+    QCheckBox* cb = dynamic_cast<QCheckBox*>(QObject::sender());
+    if( cb != NULL )
+    {
+        int i = 0;
+        while( (i < CONDBNUM) && keyenable2[i] != cb){i++;}
+        if(i<CONDBNUM){
+            enableGroup(i, checked);
+        }
+    }
+}
+
+void BoredomBreaker::toggleGroup(int group){
+    qDebug("BoredomBreaker::enableGroup(int group): %d", group);
+    if(group_enable[group]){
+        enableGroup(group, false);
+    } else {
+        enableGroup(group, true);
+    }
+}
+
+void BoredomBreaker::enableGroup(int group, bool state){
+    qDebug("BoredomBreaker::enableGroup(int group): %d", group);
+    group_enable[group] = state;
+    keyenable2[group]->setChecked (group_enable[group]);
+    dongle->setGroupsState(getGroupsBinaryState());
+
+}
+
+
+unsigned char BoredomBreaker::getGroupsBinaryState(){
+    qDebug("KeyCondition::getGroupState()");
+    unsigned char state = 0;
+    for(int i = 0; i<CONDBNUM; i++){
+        state |= group_enable[i] << (i+2);
+    }
+    state &= 0b00111100;
+    return(state);
+}
+bool BoredomBreaker::getGroupBoolState(int group_num, unsigned char bin_state){
+    qDebug("KeyCondition::getGroupState()");
+    bin_state &= (1 << (group_num+2));
+    if((bin_state & (1 << (group_num+2))) == 0){
+        return(false);
+    } else {
+        return(true);
     }
 }
 
@@ -303,25 +452,38 @@ void BoredomBreaker::cmbWinListActivated(int index){
     dongle->setActiveL2W(l2list[index]);
 }
 
-void BoredomBreaker::showDongleStatus(int state, int updatetime)
+void BoredomBreaker::showDongleStatus(int state, int g_state, int updatetime)
 {
     //qDebug("BoredomBreaker::showDongleStatus");
+    if(g_state == GROUPS_DISCONNECTED) {
+        for(int i=0;i<CONDBNUM;i++)
+        {
+            keyenable2[i]->setChecked(group_enable[i]);
+            keyenable2[i]->setEnabled (false);
+        }
+    } else {
+        for(int i=0;i<CONDBNUM;i++)
+        {
+            keyenable2[i]->setChecked(getGroupBoolState(i, g_state));
+            keyenable2[i]->setEnabled (true);
+        }
+    }
+
     switch(state){
-    case STATE_DISCONNECTED:
-        ui->cbDongle->setChecked(false);
-        ui->cbDongle->setEnabled(false);
-        break;
     case STATE_OFF:
         ui->cbDongle->setChecked(false);
         ui->cbDongle->setEnabled(true);
+//        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[1]); //RED
         break;
     case STATE_ON:
         ui->cbDongle->setChecked(true);
         ui->cbDongle->setEnabled(true);
+//        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[2]); //BLUE
         break;
      default:
-        ui->cbDongle->setChecked(true);
+        ui->cbDongle->setChecked(false);
         ui->cbDongle->setEnabled(false);
+//        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[0]); // YELLOW
         break;
     }
 
@@ -343,10 +505,8 @@ void BoredomBreaker::showDongleStatus(int state, int updatetime)
             pb[j]->setStyleSheet(StyleSheet[BARNUM]);
         }
     }
-
     ui->cmbWinList->setItemIcon(index, *l2list[index]->getIcon());
     ui->cmbWinList->setItemText(index, l2list[index]->getTitle());
-
 }
 
 
@@ -360,7 +520,7 @@ void BoredomBreaker::enumerateL2(){
 }
 
 void BoredomBreaker::addL2Window(HWND hwnd){
-    qDebug("BoredomBreaker::addL2Window(HWND hwnd): %d", hwnd);
+    qDebug("BoredomBreaker::addL2Window(HWND hwnd): %d", (int) hwnd);
     if(!l2list.isEmpty())
     {
         for(int index = 0; index < l2list.size(); index++){
@@ -376,7 +536,7 @@ void BoredomBreaker::addL2Window(HWND hwnd){
 BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
 {
         qDebug("BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)");
-        char szTextWin[255];DWORD dwPID = NULL;
+        char szTextWin[255];DWORD dwPID = (DWORD) NULL;
         GetWindowTextA(hwnd,szTextWin,sizeof(szTextWin));
         if(strstr(szTextWin, "Lineage") != 0){
             qDebug(" - Txt: %s", szTextWin);

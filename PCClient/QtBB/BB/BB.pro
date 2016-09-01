@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     xpbar.cpp \
     keycondition.cpp \
     keysettingsdialog.cpp \
-    keyconditionsset.cpp
+    keyconditionsset.cpp \
+    systemkeyboardreadwrite.cpp
 
 HEADERS  += \
     boredombreaker.h \
@@ -32,7 +33,8 @@ HEADERS  += \
     xpbar.h \
     keycondition.h \
     keysettingsdialog.h \
-    keyconditionsset.h
+    keyconditionsset.h \
+    systemkeyboardreadwrite.h
 
 FORMS    += \
     boredombreaker.ui \

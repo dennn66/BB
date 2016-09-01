@@ -25,6 +25,7 @@ KeyConditionsSet::~KeyConditionsSet()
     }
 }
 
+
 int KeyConditionsSet::LoadConfig(QString file_name){
     qDebug("KeyConditionsSet::LoadConfig");
 
@@ -65,6 +66,20 @@ int KeyConditionsSet::LoadConfig(QString file_name){
         var = topic;
         varstream  << "$FSet";
         condition[i]->FSet = sett.value(var.toStdString().c_str()).toBool();
+
+
+        for(int j = 0; j<CONDBNUM; j++){
+            var = topic;
+            varstream  << "$FGroupEnable" <<j;
+            condition[i]->setGroupState(j, sett.value(var.toStdString().c_str(), 1).toBool());
+        }
+
+        var = topic;
+        varstream  << "$FCtrl";
+        condition[i]->ctrl = sett.value(var.toStdString().c_str()).toBool();
+        var = topic;
+        varstream  << "$FShift";
+        condition[i]->shift = sett.value(var.toStdString().c_str()).toBool();
         var = topic;
         varstream  << "$Buttons";
         condition[i]->KeyString = sett.value(var.toStdString().c_str(), ".").toString();
@@ -111,6 +126,18 @@ int KeyConditionsSet::SaveConfig(QString file_name){
         var = topic;
         varstream  << "$FSet";
         sett.setValue(var.toStdString().c_str(), condition[i]->FSet);
+
+        for(int j = 0; j<CONDBNUM; j++){
+            var = topic;
+            varstream  << "$FGroupEnable" <<j;
+            sett.setValue(var.toStdString().c_str(), condition[i]->getGroupState(j));
+        }
+        var = topic;
+        varstream  << "$FCtrl";
+        sett.setValue(var.toStdString().c_str(), condition[i]->ctrl);
+        var = topic;
+        varstream  << "$FShift";
+        sett.setValue(var.toStdString().c_str(), condition[i]->shift);
         var = topic;
         varstream  << "$Buttons";
 //        condition[i]->KeyString = sett.value(var.toStdString().c_str(), ".").toString();

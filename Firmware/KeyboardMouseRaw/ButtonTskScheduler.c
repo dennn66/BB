@@ -12,7 +12,7 @@ static uint32_t PauseTimer = 0; //ms;    	/* Spam buttons timeout, 2s*/
 static uint16_t UpdateCounter = 0;    		/* HPMPCP update counter, ms*/
 
 /* DE 0-100 - Level in %, 0xFF - unknown */
-static uint8_t Params[] = {0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t Params[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 
 void set_spam_buttons_mode(uint8_t mode) {
@@ -34,11 +34,13 @@ void host_timeout_task(uint16_t time_delta)
 	}
 }
 
-void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp){
+void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp, uint8_t vp, uint8_t mobmp){
 	Params[mobHP] = mobhp;		
 	Params[playerHP] = hp;	
 	Params[playerCP] = cp;	
 	Params[playerMP] = mp;	
+	Params[playerVP] = cp;	
+	Params[mobMP] = mobmp;	
 	UpdateCounter=0;
 }
 
@@ -84,7 +86,7 @@ Button_Task_Scheduler_t * List_Find_Node(uint8_t KeyCode){
 }
 
 
-void List_Add_Node(uint8_t KeyCode, uint8_t PauseTime, uint16_t ReleaseTime, uint8_t ConditionTime){
+void List_Add_Node(uint8_t KeyCode, uint8_t PauseTime, uint16_t ReleaseTime, uint8_t ConditionTime, uint8_t flag){
 	Button_Task_Scheduler_t * Button=0;
 	Button_Task_Scheduler_t * PrevButton=0;
 	
@@ -101,8 +103,8 @@ void List_Add_Node(uint8_t KeyCode, uint8_t PauseTime, uint16_t ReleaseTime, uin
 		Button = (Button_Task_Scheduler_t *)malloc(sizeof(Button_Task_Scheduler_t));
 		if(Button == 0) {
 			LEDs_TurnOnLEDs(LEDS_LED1);
-		} else {
-			Button->state = RELEASED;
+		} else {			
+			Button->flag = (flag <<2) | RELEASED;
 			Button->timer = 0;
 			Button->PauseTime =PauseTime; //0.5s grade
 			Button->ReleaseTime = ReleaseTime; //0.1s grade
@@ -114,7 +116,7 @@ void List_Add_Node(uint8_t KeyCode, uint8_t PauseTime, uint16_t ReleaseTime, uin
 			else PrevButton->NextTask=(void *)Button;
 		}
 	} else {
-			Button->state = RELEASED;
+			Button->flag = (flag <<2) | RELEASED;
 			Button->PauseTime =PauseTime; //0.5s grade
 			Button->ReleaseTime = ReleaseTime; //0.1s grade
 			Button->ConditionTime = ConditionTime; //0.5s grade
@@ -203,14 +205,15 @@ void List_Delete_All_Coditions(Button_Task_Scheduler_t * Button){
 
 uint8_t Check_All_Coditions(Button_Task_Scheduler_t * Button){
 	Button_Task_Condition_t * Condition = Button->condition;
-	uint8_t match=1;
+	if((((Button->flag&0b11110000) >> 4) &	((get_activeState()&0b00111100) >> 2)) == 0)   return 0; 
+	
 	while(Condition !=0){
-		if(Params[Condition->Type] > 100) match = 0;
-		if((Condition->Min < 101) && (Condition->Min > Params[Condition->Type]))  match = 0;
-		if((Condition->Max < 101) && (Condition->Max < Params[Condition->Type]))  match = 0;
+		if(Params[Condition->Type] > 100) return 0;
+		if((Condition->Min < 101) && (Condition->Min > Params[Condition->Type]))  return 0;
+		if((Condition->Max < 101) && (Condition->Max < Params[Condition->Type]))  return 0;
 		Condition = (Button_Task_Condition_t *) Condition->NextCondition;
 	}
-	return match;
+	return 1;
 }
 
 void CreateKMReport(Button_Task_Scheduler_t * Button){
@@ -222,30 +225,39 @@ void CreateKMReport(Button_Task_Scheduler_t * Button){
 	uint8_t cursor = 0;
 
 	while(Button != 0){
-		switch(Button->state){
+		switch(Button->flag&BTN_FLAG_STATE_MASK){
 		case IDLE:
 			if(Check_All_Coditions(Button) == 1){				
 				if(Button->timer==0){
-					Button->state = READY;
+				    Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | READY;
 				}
 			} else {
-				Button->state = RELEASED;
+				Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | RELEASED;
 				Button->timer=0;			
 			}
 			break;
 		case READY:
 		case RELEASED:
-			if((Button->timer==0)&& (PauseTimer==0) && (get_deviceState() != 0) && (Check_All_Coditions(Button) == 1)){
-				if((Button->ConditionTime != 0) && (Button->state == RELEASED)){
-					Button->state = IDLE;
+			if(
+					(Button->timer==0)&& 
+					(PauseTimer==0) && 
+					(get_deviceState() != 0) && 
+					(Check_All_Coditions(Button) == 1)
+				){
+				if((Button->ConditionTime != 0) && ((Button->flag&BTN_FLAG_STATE_MASK) == RELEASED)){
+					Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | IDLE;
 					Button->timer = Button->ConditionTime*500; //500 ms grade	
 					break;
 				}
 				if(Button->Code != 0xFF) {
-					if(cursor < 6){ 
+					if(cursor < 1){ 
 						newKeyboardReport->KeyCode[cursor] =	Button->Code;
+						newKeyboardReport->Modifier = 0;
+						if((Button->flag & (1 << BTN_FLAG_CTRL))>0) newKeyboardReport->Modifier |= HID_KEYBOARD_MODIFIER_LEFTCTRL;
+						if((Button->flag & (1 << BTN_FLAG_SHIFT))>0) newKeyboardReport->Modifier |= HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 						cursor++;
-						Button->state = PRESSED;
+						Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | PRESSED;
+						
 						PauseTimer = Button->PauseTime*500; //500 ms grade
 						set_expectKeyboardReport(1);
 						
@@ -277,14 +289,14 @@ void CreateKMReport(Button_Task_Scheduler_t * Button){
 					newMouseReport->x = 0x00;
 					newMouseReport->y = 0x00;
 					newMouseReport->buttons |= (1 << 0);
-					Button->state = PRESSED;
+					Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | PRESSED;
 					PauseTimer = Button->PauseTime*500; //500 ms grade
 					set_expectMouseReport(1);
 				}
 			}
 			break;
 		case PRESSED:
-			Button->state = RELEASED;
+			Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | RELEASED;
 //			   	if(Button->ReleaseTime > 1500) LEDs_TurnOnLEDs(LEDS_y3);
 
 			Button->timer = 100*((uint32_t)Button->ReleaseTime); //100 ms grade
@@ -353,43 +365,5 @@ void List_Delete_All(void){
 	Buttons = 0;
 }
 
-void WriteConfig(void){
-	Button_Task_Scheduler_t * Button;
-	uint8_t counter=0;
-	
-	Button = Buttons;
-	while(Button !=0){
-		uint8_t data[CONFIG_DATA_BLOCK_SIZE];
-		data[0] = Button->Code;
-		data[1] = (uint8_t) (Button->PauseTime&0xff);
-		data[2] = (uint8_t) (Button->ReleaseTime&0xff);
-		data[3] = (uint8_t) ((Button->ReleaseTime >> 8)&0xff);
-		data[4] = (uint8_t) (Button->ConditionTime&0xff);
 
-		eeprom_write_block(data, (uint8_t *)(CONFIG_DATA_ADDRESS + counter*CONFIG_DATA_BLOCK_SIZE), CONFIG_DATA_BLOCK_SIZE);
-		Button = (Button_Task_Scheduler_t *) Button->NextTask;
-		counter++;
-	}
-	eeprom_write_byte((uint8_t*)CONFIG_HEADER_ADDRESS, counter);
-	eeprom_write_byte((uint8_t*)CONFIG_MODIFIER_ADDRESS, ((USB_KeyboardReport_Data_t*)get_newKeyboardHIDReportBuffer())->Modifier);
-}
-
-
-void ReadConfig(void){
-	uint8_t counter = eeprom_read_byte((uint8_t*)CONFIG_HEADER_ADDRESS);
-	((USB_KeyboardReport_Data_t*)get_newKeyboardHIDReportBuffer())->Modifier = eeprom_read_byte((uint8_t*)CONFIG_MODIFIER_ADDRESS);
-
-	List_Delete_All();
-	while(counter >0){	
-		uint8_t data[CONFIG_DATA_BLOCK_SIZE];
-		eeprom_read_block(data, (uint8_t *)(CONFIG_DATA_ADDRESS + (counter-1)*CONFIG_DATA_BLOCK_SIZE), CONFIG_DATA_BLOCK_SIZE);
-		List_Add_Node(
-			data[0], 
-			data[1], 
-			//1000);
-			((uint16_t)data[2])+
-			((((uint16_t)data[3]) << 8) & 0x0000ff00),data[4]);
-		counter--;
-	}
-}
 

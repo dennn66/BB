@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QtWinExtras/QtWin>
+#include <QMessageBox>
 #include <QTextStream>
 #include <QFileDialog>
 #include <QVBoxLayout>
@@ -11,6 +12,8 @@
 #include <QThread>
 #include <QProgressBar>
 #include <QGraphicsScene>
+#include <QKeyEvent>
+#include "SystemKeyboardReadWrite.h"
 #include "l2window.h"
 #include "dongle.h"
 #include "keysettingsdialog.h"
@@ -34,20 +37,34 @@ private:
     QVector <L2Window*> l2list;
     QLabel *keylabel[KEYNUM];
     QCheckBox *keyenable[KEYNUM];
+    QCheckBox *keyenable2[CONDBNUM];
     QPushButton *keysettings[KEYNUM];
     QThread* dongle_thread;
     Dongle* dongle;
+    bool group_enable[CONDBNUM];
     QProgressBar *pb[BARNUM];
+    SystemKeyboardReadWrite *kb;
+    bool bModifier;
+
     int ellipsed_time;
     static char* StyleSheet[BARNUM+1];
+    static char* StyleSheetCheckBox[5];
 
     void enumerateL2();
     bool isValidIndex(int index);
+    void toggleGroup(int group);
+    void enableGroup(int group, bool state);
+    unsigned char getGroupsBinaryState();
+    bool getGroupBoolState(int group_num, unsigned char bin_state);
+
+
 
 public slots:
-    void showDongleStatus(int state, int updatetime); /* */
-    void cbClicked(bool checked);
+    void showDongleStatus(int state, int g_state, int updatetime); /* */
+    void cbDongleClicked(bool checked);
+    void cbCtrlShiftClicked(bool checked);
     void cbKeyEnableClicked(bool checked);
+    void cbKeyEnableBxClicked(bool checked);
     void pbLoadClicked();
     void pbSaveProjectClicked();
     void pbLoadProjectClicked();
@@ -60,6 +77,9 @@ public slots:
     void cmbWinListActivated(int index);
     void cmbCondSetListActivated(int index);
     void cmbCondSetListTextChanged(const QString &text);
+    void keyGlobalPressed(DWORD vkCode);
+    void keyGlobalReleased(DWORD vkCode);
+
 signals:
     void setDongleState(int stt);
 };

@@ -10,7 +10,7 @@ Dongle::Dongle()
     state = STATE_DISCONNECTED;
     handle = NULL;
     activity = DO_NORMAL;
-
+    current_groups_state = GROUPS_DISCONNECTED;
     for(int i = 0; i < KEYNUM; i++) key_transfer_state[i] = false;
 
     connect();
@@ -33,7 +33,7 @@ void Dongle::process()
         if(currentl2w != NULL){
             currentl2w->check();
 
-            if(state == STATE_ON || state == STATE_OFF) {
+            if(state == STATE_ON || state == STATE_OFF || state == STATE_ACTIVE) {
                 switch (activity) {
                 case DO_WRITEALLTODONGLE:
                     sendCMD_DELETE_ALL();
@@ -72,6 +72,13 @@ void Dongle::process()
                 case DO_SETDONGLEOFF:
                     sendCMD_SET_STATE(false);
                     break;
+                case DO_CHANGEDONGLEGROUP:
+                    if(state == STATE_OFF) {
+                        sendCMD_SET_STATE(false);
+                    } else {
+                        sendCMD_SET_STATE(true);
+                    }
+                    break;
                 default:
                     break;
                 }
@@ -81,7 +88,7 @@ void Dongle::process()
                 transmitHPCPMP();
             }
         }
-        emit showStatus(state, updateTime.elapsed());
+        emit showStatus(state, current_groups_state, updateTime.elapsed());
         delta = 100 - updateTime.elapsed();
         delta = (delta > 0)?delta:0;
         #ifdef WIN32
@@ -111,15 +118,17 @@ void Dongle::recieve_status() {
 
     if (hid_get_input_report(handle, buf, sizeof(buf))==-1)
     {
-      qDebug("Ошибка при  приёме данных");
-      disconnect();
+        qDebug("Ошибка при  приёме данных");
+        disconnect();
     } else {
         //qDebug("Recieved %d %d", buf[0], buf[1]);
-        if(buf[1] == 0) {
+        buf[1] = buf[1] & DEVICE_STATUS_MASK;
+        if( (buf[1] & 0b00000001) == 0) {
             state = STATE_OFF;
         } else {
             state = STATE_ON;
         }
+        current_groups_state = buf[1] & 0b00111100;
     }
 }
 
@@ -135,6 +144,8 @@ int Dongle::connect()
     if (!handle) {
         qDebug("unable to open device\n");
         state = STATE_DISCONNECTED;
+        current_groups_state = GROUPS_DISCONNECTED;
+
         return state;
     }
     // Set the hid_read() function to be non-blocking.
@@ -154,6 +165,8 @@ int Dongle::disconnect()
     /* Free static HIDAPI objects. */
     hid_exit();
     state = STATE_DISCONNECTED;
+    current_groups_state = GROUPS_DISCONNECTED;
+
     return STATE_DISCONNECTED;
 }
 
@@ -213,6 +226,9 @@ void Dongle::transmitHPCPMP(){
     hpbuf[1] = getXP(idHP);
     hpbuf[2] = getXP(idCP);
     hpbuf[3] = getXP(idMP);
+    hpbuf[4] = getXP(idVP);
+    hpbuf[5] = getXP(idMobMP);
+
     qDebug("idHP: %d, idMP: %d, idMobHP: %d", hpbuf[1], hpbuf[3], hpbuf[0]);
 
     send_command(INTERFACE_ID_Keyboard, CMD_SET_HPCPMP, hpbuf);
@@ -225,7 +241,9 @@ void Dongle::sendCMD_SET_STATE(bool stt) {
 
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     memset(hpbuf,0,sizeof(hpbuf));
-    send_command(INTERFACE_ID_GenericHID, stt, hpbuf);
+    unsigned char tmp_state = groups_state;
+    tmp_state |= stt;
+    send_command(INTERFACE_ID_GenericHID, tmp_state, hpbuf);
 }
 
 void Dongle::sendCMD_WRITE_CONFIG(){
@@ -240,7 +258,7 @@ void Dongle::sendCMD_READ_CONFIG(){
     send_command(INTERFACE_ID_Keyboard, CMD_READ_CONFIG, hpbuf);
 }
 
-void Dongle::sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime){
+void Dongle::sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime, unsigned int groups, bool Ctrl, bool Shift){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     memset(hpbuf,0,sizeof(hpbuf));
 
@@ -252,11 +270,15 @@ void Dongle::sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, f
    r = (r>0xFFFF)? 0xFFFF: r;
    c = (c>0xFF)? 0xFF: c;
 
-    hpbuf[0] = string2keycode(Key);
-    hpbuf[1] = p; // $xPauseTime
-    hpbuf[2] = r & 0xFF; // BitAND(0xFF, $xReleaseTime)
-    hpbuf[3] = (r >> 8) & 0xFF; // BitAND(0xFF, $xReleaseTime/256)
-    hpbuf[4] = c; // $xConditionTime
+    hpbuf[0] = string2keycode(Key);                                     //2
+    hpbuf[1] = p; // $xPauseTime                                        //3
+    hpbuf[2] = r & 0xFF; // BitAND(0xFF, $xReleaseTime)                 //4
+    hpbuf[3] = (r >> 8) & 0xFF; // BitAND(0xFF, $xReleaseTime/256)      //5
+    hpbuf[4] = c; // $xConditionTime                                    //6
+    hpbuf[5] = groups;                                                  //7
+    if(Ctrl)      hpbuf[5] |= 0b00000010; // Ctrl
+    if(Shift)     hpbuf[5] |= 0b00000001; // Shift
+
     qDebug("CMD_ADD_NODE %s, Cooldown (0.1s) %d, Abs (0.5s) %d, Cond (0.5s) %d", Key.toStdString().c_str(), hpbuf[2]+hpbuf[3]*256, hpbuf[1], hpbuf[4]);
     send_command(INTERFACE_ID_Keyboard, CMD_ADD_NODE, hpbuf);
 }
@@ -277,10 +299,15 @@ void Dongle::sendCMD_DELETE_ALL(){
 }
 
 
-void Dongle::sendCMD_SET_MODIFIER(unsigned char Modifier){
+void Dongle::sendCMD_SET_MODIFIER(bool Ctrl, bool Shift){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     memset(hpbuf,0,sizeof(hpbuf));
-    hpbuf[0] = Modifier;
+    if(Ctrl) hpbuf[0]  |= HID_KEYBOARD_MODIFIER_LEFTCTRL;
+    if(Shift) hpbuf[0]  |= HID_KEYBOARD_MODIFIER_LEFTSHIFT;
+//    QString label;
+//    QTextStream(&label) << "Ctrl " << Ctrl << " + Shift " << Shift << " = " << hpbuf[0];
+
+//    QMessageBox::information(NULL,"SendModifyer",label);
     send_command(INTERFACE_ID_Keyboard, CMD_SET_MODIFIER, hpbuf);
 }
 
@@ -344,7 +371,10 @@ void Dongle::sendKeyToDongle(int condition_index){
                      currentl2w->getCurrentSettings()->condition[condition_index]->KeyString,
                      currentl2w->getCurrentSettings()->condition[condition_index]->conditionf[idPause],
                      currentl2w->getCurrentSettings()->condition[condition_index]->conditionf[idCoolDown],
-                     currentl2w->getCurrentSettings()->condition[condition_index]->conditionf[idCondition]);
+                     currentl2w->getCurrentSettings()->condition[condition_index]->conditionf[idCondition],
+                     currentl2w->getCurrentSettings()->condition[condition_index]->getGroupsBinaryState(),
+                    currentl2w->getCurrentSettings()->condition[condition_index]->ctrl,
+                    currentl2w->getCurrentSettings()->condition[condition_index]->shift);
 
         for(int j = idCP; j < BARNUM; j++ )
         {
@@ -372,6 +402,13 @@ void  Dongle::doSetState(bool stt){
         activity = DO_SETDONGLEOFF;
     }
 }
+
+void Dongle::setGroupsState(unsigned int state){
+    groups_state = state;
+    activity = DO_CHANGEDONGLEGROUP;
+
+}
+
 
 void Dongle::doSaveAllToDongle(){
     activity = DO_WRITEALLTODONGLE;

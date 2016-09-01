@@ -55,6 +55,7 @@ static uint8_t  newKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 
 static uint8_t deviceState = 0;		/* DE device on/off state */
 
+static uint8_t Modifier = 0;	
 
 
 #define TOGGLEIDLE 1000   /* DE period for push pull key ms */
@@ -64,7 +65,24 @@ static uint8_t expectKeyboardReport = 0;		/* flag to indicate if we expect an US
 static uint8_t expectMouseReport = 0;		/* flag to indicate if we expect an USB-report */
 
 
-uint8_t get_deviceState(void) {return deviceState;};
+uint8_t get_deviceState(void) {return deviceState& 0b00000001;};
+
+void set_deviceState(int8_t state) {
+	int8_t tmp = state&0b00000001;
+	deviceState &= 0b00111100;
+	deviceState |= tmp;
+};
+
+uint8_t get_activeState(void) {return deviceState& 0b00111100;};
+
+void set_activeState(int8_t group, int8_t state) {
+	if(state&0b00000001) {
+		deviceState |=  (1 << (group+2));
+	} else {
+	    deviceState &= ~(1 << (group+2));
+	}
+};
+
 uint8_t* get_newMouseHIDReportBuffer(void){return newMouseHIDReportBuffer;};
 uint8_t* get_newKeyboardHIDReportBuffer(void){return newKeyboardHIDReportBuffer;};
 uint8_t get_expectKeyboardReport(void){return expectKeyboardReport;};
@@ -153,7 +171,7 @@ int main(void)
 
 	SetupHardware();
 
-	((USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer)->Modifier =	0;
+	Modifier =	0;
 	//ReadConfig();
 	_delay_us(1000);
 	prevButton1State =  Buttons_GetStatus()& BUTTONS_BUTTON1;
@@ -164,7 +182,8 @@ int main(void)
 						32, 
 						0, 
 						10,
-						0);
+						0,
+						0b00000000); //flag
 
 	GlobalInterruptEnable();
 		
@@ -172,7 +191,7 @@ int main(void)
 	{			
 		uint8_t Button1State = Buttons_GetStatus();
 		if(prevButton1State > Button1State){
-			deviceState = 1-deviceState;
+			set_deviceState(1-get_deviceState());
 		}
 		prevButton1State = Button1State;
 
@@ -226,17 +245,21 @@ void PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
     }
 	switch(mouse_report->buttons){
 		case (1 << USB_MOUSE_BTN_4th):
+			set_activeState(0, 1);
+			break;
 		case ((1 << USB_MOUSE_BTN_MIDDLE)|(1 << USB_MOUSE_BTN_LEFT)):
-			deviceState = 1;
+			set_deviceState(1);
 			break;
 		case (1 << USB_MOUSE_BTN_5th):
-		case ((1 << USB_MOUSE_BTN_MIDDLE)|(1 << USB_MOUSE_BTN_RIGHT)):
-			deviceState = 0;
+			set_activeState(0, 0);
 			break;
-		case ((1 << USB_MOUSE_BTN_4th)|(1 << USB_MOUSE_BTN_LEFT)):
+		case ((1 << USB_MOUSE_BTN_MIDDLE)|(1 << USB_MOUSE_BTN_RIGHT)):
+			set_deviceState(0);
+			break;
+		case ((1 << USB_MOUSE_BTN_4th)|(1 << USB_MOUSE_BTN_MIDDLE)):
 			ps2mouse_suspend = 0;
 			break;
-		case ((1 << USB_MOUSE_BTN_5th)|(1 << USB_MOUSE_BTN_LEFT)):
+		case ((1 << USB_MOUSE_BTN_5th)|(1 << USB_MOUSE_BTN_MIDDLE)):
 			ps2mouse_suspend = 1;
 			break;
 	}
@@ -246,18 +269,25 @@ void PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
 //ISR(TIMER0_COMPA_vect, ISR_BLOCK)
 void led_indicator_task(uint16_t time_delta)
 {
-	//Button_Task_Scheduler_t * PrevButton;
-
 	// Control device state LED
-	if(deviceState == 0){
+	if(get_deviceState() == 0){
 		toggleCounter+=time_delta;
 		if(toggleCounter >= TOGGLEIDLE){
 			LEDs_ToggleLEDs(LEDS_LED1);
 			toggleCounter = 0;
 		}
 	} else {
-		LEDs_TurnOnLEDs(LEDS_LED1);
-	}
+//		if(get_activeState() == 0){
+		if(Modifier > 0){
+			toggleCounter+=time_delta;
+			if(toggleCounter >= TOGGLEIDLE/5){
+				LEDs_ToggleLEDs(LEDS_LED1);
+				toggleCounter = 0;
+			}
+		} else {
+			LEDs_TurnOnLEDs(LEDS_LED1);
+		}
+	}	
 }
 
 
@@ -412,8 +442,8 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 
 		// Create keyboard report 
 		if (expectKeyboardReport != 0) {	
-			if (deviceState==1) {
-				KeyboardReport->Modifier = newKeyboardReport->Modifier;
+			if (get_deviceState() > 0) {
+				KeyboardReport->Modifier = newKeyboardReport->Modifier | Modifier;
 			} else {
 				KeyboardReport->Modifier = 0;			
 			}
@@ -460,7 +490,8 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		LEDs_ToggleLEDs(LEDS_LED2);
 
 		/* Return status of device */
-		RawReport[0] = deviceState;
+		RawReport[0] = deviceState& 0b00111101;
+
 		*ReportSize = 1;
 		return true;
 	} 
@@ -506,22 +537,22 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 		
 		if(Service == INTERFACE_ID_Keyboard){
 			uint8_t Command = RawReport[1];	
-			uint16_t tmp  = 256*RawReport[5]+RawReport[4];
+			uint16_t tmp;;
 //			if(tmp > 1500) LEDs_TurnOnLEDs(LEDS_LED1);
 
 			switch(Command){
 				case CMD_WRITE_CONFIG:
-					WriteConfig();
 					break;
 				case CMD_READ_CONFIG:
-					ReadConfig();
 					break;
 				case CMD_ADD_NODE:
+					tmp  = 256*RawReport[5]+RawReport[4];
 					List_Add_Node(
 						RawReport[2], 
 						RawReport[3], 
 						tmp,
-						RawReport[6]);
+						RawReport[6],
+						RawReport[7]);
 					break;
 				case CMD_DELETE_NODE:
 					List_Delete_Node(RawReport[2]);
@@ -530,14 +561,14 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 					List_Delete_All();
 					break;
 				case CMD_SET_MODIFIER:
-					((USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer)->Modifier = RawReport[2];
+					Modifier = RawReport[2];
 					break;
 				case CMD_SET_MODE:
 					set_spam_buttons_mode(RawReport[2]);
 					break;
 				case CMD_SET_HPCPMP:
 					// mobHP playerHP playerCP playerMP
-					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5]);
+					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
 					break;
 				case CMD_ADD_NODE_CONDITION:
 					if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||

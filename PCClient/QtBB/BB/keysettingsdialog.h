@@ -4,6 +4,10 @@
 #include <QDialog>
 #include <QTextStream>
 #include <QLineEdit>
+#include <QCheckBox>
+#include <QVBoxLayout>
+
+
 #include "keycondition.h"
 
 
@@ -24,11 +28,15 @@ private:
     QLineEdit* controlf[CONDFNUM];
     QLineEdit* controli[CONDINUM];
     KeyCondition* condition;
+    QCheckBox *keyenable2[CONDBNUM];
+
 public slots:
     void textFChanged(QString text);
     void textIChanged(QString text);
     void cbKeyMnemonicActivated(int);
-
+    void cbCtrlClicked(bool checked);
+    void cbShiftClicked(bool checked);
+    void cbKeyEnableBxClicked(bool checked);
 };
 
 #endif // KEYSETTINGSDIALOG_H

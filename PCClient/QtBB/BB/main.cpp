@@ -8,6 +8,7 @@
 #define ORG_NAME "Evl"
 #define ORG_DOMAIN "none"
 
+
 // Данные для ведения логов
 static QTextStream* logStream;
 static QFile* logFile;

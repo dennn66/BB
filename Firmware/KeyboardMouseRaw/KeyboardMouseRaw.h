@@ -74,6 +74,13 @@
 		/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
 		#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
 
+
+		#define DEVICE_STATUS_MASK      0b00000011
+		#define DEVICE_STATUS_STATE      0
+		#define DEVICE_STATUS_ACTIVE     1
+		
+
+
 	/* Function Prototypes: */
 		void SetupHardware(void);
 
@@ -89,6 +96,7 @@
 		void host_timeout_task(uint16_t time_delta);
 
 
+		uint8_t get_activeState(void);
 		uint8_t get_deviceState(void);
 		uint8_t* get_newMouseHIDReportBuffer(void);
 		uint8_t* get_newKeyboardHIDReportBuffer(void);

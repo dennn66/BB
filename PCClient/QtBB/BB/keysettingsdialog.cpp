@@ -37,7 +37,13 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
         }
     }
     connect(ui->cbKeyMnemonic, SIGNAL(activated(int)), SLOT(cbKeyMnemonicActivated(int)));
+    connect(ui->cbCtrl, SIGNAL(clicked(bool)), SLOT(cbCtrlClicked(bool)));
+    connect(ui->cbShift, SIGNAL(clicked(bool)), SLOT(cbShiftClicked(bool)));
 
+
+    //ui->cbPermanent->setChecked(condition->permanent);
+    ui->cbCtrl->setChecked(condition->ctrl);
+    ui->cbShift->setChecked(condition->shift);
 
     for(int i = idCoolDown; i<CONDFNUM; i++){
         value = "";
@@ -46,6 +52,7 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
         out << condition->conditionf[i];
         controlf[i]->setText(value);
     }
+
 
 
     ui->leMPMin->setValidator(vi);
@@ -59,11 +66,46 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
         controli[i]->setText(value);
     }
 
+    QGridLayout *layout_2 = new QGridLayout;
+    QString key_label = "B";
+    QTextStream key_label_stream(&key_label);
+
+    for(int i=0;i<CONDBNUM;i++)
+    {
+        int j=0;
+        key_label = "B";
+        key_label_stream <<  i+1;
+        QGridLayout *sell  = new QGridLayout;
+        keyenable2[i] = new QCheckBox(key_label.toStdString().c_str());
+        sell->addWidget(keyenable2[i],0, 0);
+        keyenable2[i]->setChecked (condition->getGroupState(i));
+        layout_2->addLayout(sell,i, j);
+    }
+    ui->chkbox_widget_2->setLayout(layout_2);
+
+    for(int i = 0; i< CONDBNUM; i++){
+        connect(keyenable2[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
+    }
+
+
 }
 
 KeySettingsDialog::~KeySettingsDialog()
 {
     delete ui;
+}
+
+void KeySettingsDialog::cbKeyEnableBxClicked(bool checked){
+    qDebug("KeySettingsDialog::cbKeyEnableBxClicked(bool checked): %d", checked);
+    QCheckBox* cb = dynamic_cast<QCheckBox*>(QObject::sender());
+    if( cb != NULL )
+    {
+        int i = 0;
+        while( (i < CONDBNUM) && keyenable2[i] != cb){i++;}
+        if(i<CONDBNUM){
+            condition->setGroupState(i, checked);
+        }
+    }
 }
 
 void KeySettingsDialog::textFChanged(QString text)
@@ -93,6 +135,20 @@ void KeySettingsDialog::textIChanged(QString text)
             }
         }
     }
+}
+
+
+void KeySettingsDialog::cbCtrlClicked(bool checked){
+    qDebug("Checkbox: %d", checked);
+    condition->ctrl = checked;
+    //dongle->doSetState(checked);
+
+}
+
+void KeySettingsDialog::cbShiftClicked(bool checked){
+    qDebug("Checkbox: %d", checked);
+    condition->shift = checked;
+    //dongle->doSetState(checked);
 }
 
 void KeySettingsDialog::cbKeyMnemonicActivated(int index)

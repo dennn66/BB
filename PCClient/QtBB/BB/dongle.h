@@ -8,6 +8,9 @@
 #include <string.h>
 #include <QThread>
 #include <QTime>
+#include <QMessageBox>
+#include <QTextStream>
+
 
 #include "l2window.h"
 
@@ -29,6 +32,9 @@
 #define STATE_ON                1
 #define STATE_TRANSMIT_CONF     2
 #define STATE_TRANSMIT_KEY      3
+#define STATE_ACTIVE            4
+
+#define GROUPS_DISCONNECTED     0xFF
 
 
 #define DO_NORMAL               0
@@ -36,12 +42,19 @@
 #define DO_WRITEKEYTODONGLE     2
 #define DO_SETDONGLEON          3
 #define DO_SETDONGLEOFF         4
+#define DO_CHANGEDONGLEGROUP    5
 
 #define HID_REPORT_SIZE         9
 
+#define 	HID_KEYBOARD_MODIFIER_LEFTCTRL   (1 << 0)
+
+#define 	HID_KEYBOARD_MODIFIER_LEFTSHIFT   (1 << 1)
+
 #define KEY_DB_SIZE         219
 
-
+#define DEVICE_STATUS_MASK      0b00111101
+#define DEVICE_STATUS_STATE      0
+#define DEVICE_STATUS_ACTIVE     1
 
 
 class Dongle : public QObject
@@ -53,7 +66,9 @@ public:
 
     void doSendKeyToDongle(int condition_index);
     void doSetState(bool stt);
+    void setGroupsState(unsigned int groups_state);
     void doSaveAllToDongle();
+    void sendCMD_SET_MODIFIER(bool Ctrl, bool Shift);
 
     void setActiveL2W(L2Window* l2w);
 
@@ -67,11 +82,13 @@ public:
 signals:
     void finished();
     void error(QString err);
-    void showStatus(int stt, int updatetime);
+    void showStatus(int stt, int g_stt, int updatetime);
 
 private:
     hid_device *handle;
     int state;
+    unsigned char groups_state;
+    unsigned char current_groups_state;
     int activity;
     L2Window* currentl2w;
     bool key_transfer_state[KEYNUM];
@@ -85,10 +102,9 @@ private:
     void sendCMD_SET_STATE(bool stt);
     void sendCMD_WRITE_CONFIG();
     void sendCMD_READ_CONFIG();
-    void sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime);
+    void sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime, unsigned int groups, bool Ctrl, bool Shift);
     void sendCMD_DELETE_NODE(QString Key);
     void sendCMD_DELETE_ALL();
-    void sendCMD_SET_MODIFIER(unsigned char Modifier);
     void sendCMD_ADD_NODE_CONDITION(QString Key, unsigned char Type, unsigned char Min, unsigned char Max);
     unsigned char getXP(int idXP);
     void sendKeyToDongle(int condition_index);
