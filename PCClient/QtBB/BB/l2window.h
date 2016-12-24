@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QTextStream>
 #include <QSettings>
+#include <QMessageBox>
 #include <windows.h>
 
 #include "xpbar.h"
@@ -17,18 +18,26 @@
 #define L2_OFF false
 #define L2_ON true
 
-
+#define TARGETMEORPET   0
+#define TARGETCHAR      1
+#define TARGETMOB       2
+#define NOTARGET        3
+#define TARGETSTATESNUM 4
 
 class L2Window
 {
 public:
+    int targettype;
     L2Window(HWND winhwnd);
     bool init(QImage image);
     QIcon* getIcon();
+    bool getStarState();
+    QColor* getStarColor();
     QString getTitle();
     QString getNic();
     HWND getHWND();
     QString project_file_name;
+    QColor c2; //token
 
     int getStatus();
     int LoadProject(QString file_name);
@@ -57,12 +66,27 @@ private:
     XPBar bar[BARNUM];
     //QString nic;
     QIcon* L2icon;
+    bool bStar;
     int image_width;
     int image_height;
+    QImage mainleft;
+    QImage mainright;
+    QPoint maintopleft;
+    QPoint maintopright;
+    QImage mobleft_o;
+    QImage mobright_o;
+    QImage mobleft_c;
+    QImage mobright_c;
+    QPoint mobtopleft;
+    QPoint mobtopright;
+    QImage star;
+    QPoint startopleft;
+    QPoint findPattern(QImage source, QPoint topleft, QPoint bottomright, QImage pattern, int delta);
+
     //static char* DefaultKeyDB[KEYNUM];
 
     QImage capture();
-    bool findXP(int index, QImage image);
+//    bool findXP(int index, QImage image);
     bool findCPHPMP(QImage image);
 
 signals:

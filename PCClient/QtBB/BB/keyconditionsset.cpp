@@ -70,8 +70,11 @@ int KeyConditionsSet::LoadConfig(QString file_name){
 
         for(int j = 0; j<CONDBNUM; j++){
             var = topic;
-            varstream  << "$FGroupEnable" <<j;
-            condition[i]->setGroupState(j, sett.value(var.toStdString().c_str(), 1).toBool());
+            //varstream  << "$FGroupEnable" <<j;
+            varstream  << KeyCondition::conditionb_tag[j];
+            bool default_val = 1;
+            if(j == idCheckStar) default_val = 0;
+            condition[i]->conditionb[j] = sett.value(var.toStdString().c_str(), default_val).toBool();
         }
 
         var = topic;
@@ -129,8 +132,9 @@ int KeyConditionsSet::SaveConfig(QString file_name){
 
         for(int j = 0; j<CONDBNUM; j++){
             var = topic;
-            varstream  << "$FGroupEnable" <<j;
-            sett.setValue(var.toStdString().c_str(), condition[i]->getGroupState(j));
+            varstream  << KeyCondition::conditionb_tag[j];
+//            varstream  << "$FGroupEnable" <<j;
+            sett.setValue(var.toStdString().c_str(), condition[i]->conditionb[j]);
         }
         var = topic;
         varstream  << "$FCtrl";

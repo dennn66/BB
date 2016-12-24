@@ -7,6 +7,7 @@
 #define idCoolDown      0
 #define idPause         1
 #define idCondition     2
+
 #define CONDFNUM 3
 
 #define idMinCP         0
@@ -21,9 +22,25 @@
 #define idMaxVP         9
 #define idMaxMobHP      10
 #define idMaxMobMP      11
-#define CONDINUM 12
-#define CONDBNUM 4
 
+#define CONDINUM 12
+
+#define idGroupB1         0
+#define idGroupB2         1
+#define idGroupB3         2
+#define idGroupB4         3
+#define idCheckStar       4
+#define idStarState       5
+#define idTargetMeOrPet   6
+#define idTargetChar      7
+#define idTargetMob       8
+#define idNoTarget        9
+
+
+
+#define CONDBNUM 10
+#define GROUPSNUM 4
+#define TARGETTYPENUM 4
 
 class KeyCondition
 {
@@ -33,17 +50,22 @@ public:
     void setGroupState(int group, bool state);
     bool getGroupState(int group);
     unsigned char getGroupsBinaryState();
+    unsigned char getTargetTypeBinaryState();
+    unsigned char getStarStatusBinaryState();
+
     bool FSet;
     float conditionf[CONDFNUM]; //Cooldown, Pause, ConditionIdle
     unsigned char  conditioni[CONDINUM]; //Min Max
     QString KeyString;
-    bool group_enable[CONDBNUM];
+    bool conditionb[CONDBNUM];
     bool ctrl;
     bool shift;
 
 
     static char* conditionf_tag[CONDFNUM];
     static char* conditioni_tag[CONDINUM];
+    static char* conditionb_tag[CONDBNUM];
+    static char* conditionb_name[CONDBNUM];
 
 };
 

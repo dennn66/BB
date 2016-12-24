@@ -15,6 +15,7 @@
 #define idVP 3
 #define idMobHP 4
 #define idMobMP 5
+#define idTargetType 6 //Only for message to dongle
 #define BARNUM 6
 
 #define CP_COLOR qRgb(136, 90, 0) //$CP_COLOR = 0x805300,+(133,100,32)
@@ -32,10 +33,15 @@
 //#define BK_MobMP_COLOR qRgb(24,39,59) //$PET_MP_COLOR = 0x074C9C,+
 #define VP_COLOR qRgb(65, 90, 24)
 #define BK_VP_COLOR qRgb(32, 37, 25)
+#define STAR_COLOR qRgb(0xB7, 0x96, 0x05)
 
 class XPBar
 {
 public:
+    int yXP;
+    int xBegin;
+    int xEnd;
+
     XPBar();
     bool getStatus();
     int getXP();
@@ -47,20 +53,17 @@ public:
     void setColors(QRgb color, QRgb bk_color);
     void setbarID(int id);
     void setStatus(bool stt);
+    static bool CompareColors(QRgb color1, QRgb color2, UINT8 delta);
 
 
 
 private:
     bool status;
     int barID;
-    int yXP;
-    int xBegin;
-    int xEnd;
     int XP;
     QRgb barcolor;
     QRgb barbkclr;
 
-    bool CompareColors(QRgb color1, QRgb color2, UINT8 delta);
     bool findPixel(QImage image, int pix_num, UINT8 pixel_delta, QRgb color, UINT8 color_delta);
 
 signals:

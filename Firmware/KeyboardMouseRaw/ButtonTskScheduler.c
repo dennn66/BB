@@ -4,29 +4,34 @@
 #include "KeyboardMouseRaw.h"
 
 static Button_Task_Scheduler_t* Buttons = 0;
-static Button_Task_Scheduler_t* HostButton = 0;
-static uint8_t Mode = 0;		/* Spam buttons mode */
+//static Button_Task_Scheduler_t* HostButton = 0;
+//static uint8_t Mode = 0;		/* Spam buttons mode */
 static uint32_t PauseTimer = 0; //ms;    	/* Spam buttons timeout, 2s*/
 
 #define UPDATETIMEOUT 2000   /* DE period for push pull key ms */
 static uint16_t UpdateCounter = 0;    		/* HPMPCP update counter, ms*/
 
 /* DE 0-100 - Level in %, 0xFF - unknown */
-static uint8_t Params[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t Params[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 
-void set_spam_buttons_mode(uint8_t mode) {
-	Mode=mode;
-}
+//void set_spam_buttons_mode(uint8_t mode) {
+//	Mode=;
+//}
 
 void host_timeout_task(uint16_t time_delta)
 {
 	//Check Host communication timeout
 	if(UpdateCounter > UPDATETIMEOUT){
-		Params[mobHP] = 0xFF;		
-		Params[playerHP] = 0xFF;	
-		Params[playerCP] = 0xFF;	
-		Params[playerMP] = 0xFF;
+		Params[mobHP]      = 0xFF;		
+		Params[playerHP]   = 0xFF;	
+		Params[playerCP]   = 0xFF;	
+		Params[playerMP]   = 0xFF;
+		Params[playerVP]   = 0xFF;	
+		Params[mobMP]      = 0xFF;		
+		Params[targetType] = NOTARGET;	
+		Params[starState]  = 0;
+
 		UpdateCounter = UPDATETIMEOUT;
 		LEDs_TurnOffLEDs(LEDS_LED2);
 	} else {
@@ -41,6 +46,12 @@ void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp, uint8_t vp, u
 	Params[playerMP] = mp;	
 	Params[playerVP] = cp;	
 	Params[mobMP] = mobmp;	
+	UpdateCounter=0;
+}
+
+void set_TargetState(uint8_t targettype, uint8_t starstate){
+	Params[targetType] = targettype;	
+	Params[starState] = starstate;		
 	UpdateCounter=0;
 }
 
@@ -61,16 +72,7 @@ void spam_buttons_task(uint16_t time_delta)
 	
 	//Prepare Keyboard and mouse reports
 	if((get_expectMouseReport() == 0)&& (get_expectKeyboardReport() == 0) ){
-		switch(Mode){
-		case SPAMBUTTONS:
-			CreateKMReport(Buttons);
-			break;
-		case HOSTCOMMAND:
-			CreateKMReport(HostButton);
-			break;
-		default:
-			break;
-		}
+		CreateKMReport(Buttons);
 	}
 }
 
@@ -203,14 +205,31 @@ void List_Delete_All_Coditions(Button_Task_Scheduler_t * Button){
 	Button->condition = 0;
 }
 
-uint8_t Check_All_Coditions(Button_Task_Scheduler_t * Button){
+uint8_t Check_All_Coditions(Button_Task_Scheduler_t * Button){	 
 	Button_Task_Condition_t * Condition = Button->condition;
-	if((((Button->flag&0b11110000) >> 4) &	((get_activeState()&0b00111100) >> 2)) == 0)   return 0; 
-	
+	if((((Button->flag&0b11110000) >> 4) &	((get_activeState()&0b00111100) >> 2)) == 0)   return 0; 	
 	while(Condition !=0){
-		if(Params[Condition->Type] > 100) return 0;
-		if((Condition->Min < 101) && (Condition->Min > Params[Condition->Type]))  return 0;
-		if((Condition->Max < 101) && (Condition->Max < Params[Condition->Type]))  return 0;
+		if(Condition->Type == targetType){
+			//  check target conditions			
+			uint8_t TargetCondition = Condition->Min;
+			uint8_t StarStateCondition = Condition->Max;
+
+//				setDebugFlag(0); 			
+			if(((1 << Params[targetType]) & TargetCondition) == 0 ) return 0;
+			
+			if((StarStateCondition & 0b00000010) > 0) {
+				if(	Params[starState] != (StarStateCondition & 0b00000001)) return 0;
+			}			
+		} else {
+		
+		    if(!((Condition->Type == mobHP) && (Params[targetType] != TARGETMOB))){
+				if(!((Condition->Type == mobMP) && (Params[targetType] != TARGETMEORPET))){
+					if(Params[Condition->Type] > 100) return 0;
+					if((Condition->Min < 101) && (Condition->Min > Params[Condition->Type]))  return 0;
+					if((Condition->Max < 101) && (Condition->Max < Params[Condition->Type]))  return 0;
+				}
+			}
+		}
 		Condition = (Button_Task_Condition_t *) Condition->NextCondition;
 	}
 	return 1;
@@ -249,7 +268,7 @@ void CreateKMReport(Button_Task_Scheduler_t * Button){
 					Button->timer = Button->ConditionTime*500; //500 ms grade	
 					break;
 				}
-				if(Button->Code != 0xFF) {
+				if(Button->Code < 0xE8) {
 					if(cursor < 1){ 
 						newKeyboardReport->KeyCode[cursor] =	Button->Code;
 						newKeyboardReport->Modifier = 0;
@@ -283,12 +302,21 @@ void CreateKMReport(Button_Task_Scheduler_t * Button){
 						}
 						PressedButton->NextTask = (void*)0;
 					}
-				} else {
+				} else if((Button->Code > 0xEF) && (Button->Code < 0xF5)){
 					report_mouse_t* newMouseReport = (report_mouse_t*)get_newMouseHIDReportBuffer();
 						// Create mouse report 
 					newMouseReport->x = 0x00;
 					newMouseReport->y = 0x00;
-					newMouseReport->buttons |= (1 << 0);
+
+					//0xF0 USB_MOUSE_BTN_LEFT      
+					//0xF1 USB_MOUSE_BTN_RIGHT     
+					//0xF2 USB_MOUSE_BTN_MIDDLE    
+					//0xF3 USB_MOUSE_BTN_4th       
+					//0xF4 USB_MOUSE_BTN_5th       
+					
+					newMouseReport->buttons |= (1 << (Button->Code - 0xF0));
+					newMouseReport->buttons &= USB_MOUSE_BTN_MASK;		
+			
 					Button->flag = (Button->flag & (~BTN_FLAG_STATE_MASK)) | PRESSED;
 					PauseTimer = Button->PauseTime*500; //500 ms grade
 					set_expectMouseReport(1);
@@ -302,7 +330,7 @@ void CreateKMReport(Button_Task_Scheduler_t * Button){
 			Button->timer = 100*((uint32_t)Button->ReleaseTime); //100 ms grade
 //				if(Button->ReleaseTime > 2300) LEDs_TurnOnLEDs(LEDS_LED1);
 
-			if(Button->Code == 0xFF) {
+			if((Button->Code > 0xEF) && (Button->Code < 0xF5)) {
 				report_mouse_t* newMouseReport = (report_mouse_t*)get_newMouseHIDReportBuffer();
 				newMouseReport->buttons = 0x00;
 				set_expectMouseReport(1);

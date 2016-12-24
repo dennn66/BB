@@ -56,7 +56,10 @@ static uint8_t  newKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 static uint8_t deviceState = 0;		/* DE device on/off state */
 
 static uint8_t Modifier = 0;	
+static uint8_t DebugFlag = 0;	
 
+
+void setDebugFlag(int8_t state) {	DebugFlag = state;};
 
 #define TOGGLEIDLE 1000   /* DE period for push pull key ms */
 static uint16_t toggleCounter = 0;    		/* DE timer for push pull key*/
@@ -74,6 +77,9 @@ void set_deviceState(int8_t state) {
 };
 
 uint8_t get_activeState(void) {return deviceState& 0b00111100;};
+
+uint8_t get_deviceMode(void) {return deviceState& 0b00000010;};
+
 
 void set_activeState(int8_t group, int8_t state) {
 	if(state&0b00000001) {
@@ -199,7 +205,7 @@ int main(void)
 		ps2_mouse_task();		
 		led_indicator_task(timer_elapsed(last_led_timer));
 		host_timeout_task(timer_elapsed(last_led_timer));
-		spam_buttons_task(timer_elapsed(last_led_timer));
+		if(get_deviceMode() == 0) spam_buttons_task(timer_elapsed(last_led_timer));
 		last_led_timer = timer_read();
 		if(timer_elapsed(mouse_find_timer) > 5000) {
 			//find_mouse();
@@ -212,12 +218,6 @@ int main(void)
 	}
 }
 
-#define USB_MOUSE_BTN_MASK      0x1F
-#define USB_MOUSE_BTN_LEFT      0
-#define USB_MOUSE_BTN_RIGHT     1
-#define USB_MOUSE_BTN_MIDDLE    2
-#define USB_MOUSE_BTN_4th       3
-#define USB_MOUSE_BTN_5th       4
 
 void PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
 
@@ -278,9 +278,15 @@ void led_indicator_task(uint16_t time_delta)
 		}
 	} else {
 //		if(get_activeState() == 0){
-		if(Modifier > 0){
+		if(DebugFlag > 0){
 			toggleCounter+=time_delta;
-			if(toggleCounter >= TOGGLEIDLE/5){
+			if(toggleCounter >= TOGGLEIDLE/20){
+				LEDs_ToggleLEDs(LEDS_LED1);
+				toggleCounter = 0;
+			}
+		} else if(get_deviceMode() > 0){
+			toggleCounter+=time_delta;
+			if(toggleCounter >= TOGGLEIDLE/100){
 				LEDs_ToggleLEDs(LEDS_LED1);
 				toggleCounter = 0;
 			}
@@ -288,6 +294,7 @@ void led_indicator_task(uint16_t time_delta)
 			LEDs_TurnOnLEDs(LEDS_LED1);
 		}
 	}	
+	
 }
 
 
@@ -490,7 +497,15 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		LEDs_ToggleLEDs(LEDS_LED2);
 
 		/* Return status of device */
-		RawReport[0] = deviceState& 0b00111101;
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - Group 0 status
+		// 3 - Group 1 status
+		// 4 - Group 2 status
+		// 5 - Group 3 status
+		// 6 - NC
+		// 7 - NC
+		RawReport[0] = deviceState& 0b00111111;
 
 		*ReportSize = 1;
 		return true;
@@ -533,9 +548,9 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 		*/
 	} else if(HIDInterfaceInfo == &Generic_HID_Interface) {
 		uint8_t *RawReport = (uint8_t*)ReportData;
-		uint8_t Service = RawReport[0];
+		uint8_t Service = RawReport[0];		
 		
-		if(Service == INTERFACE_ID_Keyboard){
+		if(Service == SERVICE_CONFIG){
 			uint8_t Command = RawReport[1];	
 			uint16_t tmp;;
 //			if(tmp > 1500) LEDs_TurnOnLEDs(LEDS_LED1);
@@ -563,41 +578,80 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 				case CMD_SET_MODIFIER:
 					Modifier = RawReport[2];
 					break;
-				case CMD_SET_MODE:
-					set_spam_buttons_mode(RawReport[2]);
-					break;
 				case CMD_SET_HPCPMP:
 					// mobHP playerHP playerCP playerMP
 					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
 					break;
+				case CMD_SET_TARGET_STATE:
+					// mobHP playerHP playerCP playerMP
+					//if(RawReport[2] == 2) DebugFlag = 1;
+					set_TargetState(RawReport[2], RawReport[3]); // Target type, Star State
+					break;
 				case CMD_ADD_NODE_CONDITION:
-					if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||
-						((RawReport[4] > 100) && (RawReport[5] > 100))){
-						List_Delete_Condition(
-							RawReport[2],    //Key Code
-							RawReport[3]);   // Condition Type
+					if(RawReport[3] == targetType) {
+						if( RawReport[4] == 0b00001111 && (RawReport[5]&0b00000010) == 0){
+							List_Delete_Condition(
+								RawReport[2],    //Key Code
+								RawReport[3]);   // Condition Type
+						} else {
+							List_Update_Condition(
+								RawReport[2],   //Key Code
+								RawReport[3],   // Condition Type
+								RawReport[4],   // Condition TargetType
+								RawReport[5]);  // Condition StarState							
+						}
 					} else {
-						List_Update_Condition(
-							RawReport[2],   //Key Code
-							RawReport[3],   // Condition Type
-							RawReport[4],   // Condition Min
-							RawReport[5]);  // Condition Max							
+						if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||
+							((RawReport[4] > 100) && (RawReport[5] > 100))){
+							List_Delete_Condition(
+								RawReport[2],    //Key Code
+								RawReport[3]);   // Condition Type
+						} else {
+							List_Update_Condition(
+								RawReport[2],   //Key Code
+								RawReport[3],   // Condition Type
+								RawReport[4],   // Condition Min
+								RawReport[5]);  // Condition Max							
+						}
 					}
 					break;
 				default:
 					break;
 			}
-		} else if(Service == INTERFACE_ID_Mouse){
-			report_mouse_t* newMouseReport = (report_mouse_t*)newMouseHIDReportBuffer;
-			newMouseReport->x =	RawReport[1]-128;
-			newMouseReport->y =	RawReport[2]-128;
-			newMouseReport->buttons =	RawReport[3];
-			expectMouseReport = 1;		
-		}else if(Service == INTERFACE_ID_GenericHID){
-			deviceState =	RawReport[1];
+		} else if(Service == SERVICE_MOUSE){
+			if(get_deviceMode() > 0) {
+				report_mouse_t* newMouseReport = (report_mouse_t*)newMouseHIDReportBuffer;
+				newMouseReport->x =	RawReport[1]-128;
+				newMouseReport->y =	RawReport[2]-128;
+				newMouseReport->buttons =	RawReport[3];
+				expectMouseReport = 1;		
+			}
+		} else if(Service == SERVICE_DEVICE){
+		// Set device status
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - Group 0 status
+		// 3 - Group 1 status
+		// 4 - Group 2 status
+		// 5 - Group 3 status
+		// 6 - NC
+		// 7 - NC
+			deviceState =	RawReport[1] & 0b00111111;
 			expectMouseReport = 0;		
 			expectKeyboardReport = 0;
-		}
+		} else if(Service == SERVICE_KEYBOARD){					
+			if(get_deviceMode() > 0) {
+				USB_KeyboardReport_Data_t* newKeyboardReport = (USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer;
+				newKeyboardReport->KeyCode[0] = RawReport[1];
+				newKeyboardReport->KeyCode[1] = RawReport[2];
+				newKeyboardReport->KeyCode[2] = RawReport[3];
+				newKeyboardReport->KeyCode[3] = RawReport[4];
+				newKeyboardReport->KeyCode[4] = RawReport[5];
+				newKeyboardReport->KeyCode[5] = RawReport[6]; //0x22 == "5";
+				newKeyboardReport->Modifier = RawReport[7];			
+				expectKeyboardReport = 1;
+			} 
+		}  
 		
 	}
 }

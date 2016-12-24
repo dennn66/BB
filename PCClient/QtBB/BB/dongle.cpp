@@ -1,7 +1,9 @@
 #include "dongle.h"
 
-char* Dongle::KeyMnemonicDB[219] = {"ERROR_ROLLOVER", 	"POST_FAIL", 	"ERROR_UNDEFINED", 	"A", 	"B", 	"C", 	"D", 	"E", 	"F", 	"G", 	"H", 	"I", 	"J", 	"K", 	"L", 	"M", 	"N", 	"O", 	"P", 	"Q", 	"R", 	"S", 	"T", 	"U", 	"V", 	"W", 	"X", 	"Y", 	"Z", 	"1", 	"2", 	"3", 	"4", 	"5", 	"6", 	"7", 	"8", 	"9", 	"0", 	"ENTER", 	"ESCAPE", 	"BACKSPACE", 	"TAB", 	"SPACE", 	"-", 	"=", 	"[", 	"]", 	"\\", 	"`", 	";", 	"", 	"GRAVE_ACCENT_AND_TILDE", 	",", 	".", 	"/", 	"CAPS_LOCK", 	"F1", 	"F2", 	"F3", 	"F4", 	"F5", 	"F6", 	"F7", 	"F8", 	"F9", 	"F10", 	"F11", 	"F12", 	"PRINT_SCREEN", 	"SCROLL_LOCK", 	"PAUSE", 	"INSERT", 	"HOME", 	"PAGE_UP", 	"DELETE", 	"END", 	"PAGE_DOWN", 	"RIGHT_ARROW", 	"LEFT_ARROW", 	"DOWN_ARROW", 	"UP_ARROW", 	"NUM_LOCK", 	"KEYPAD_SLASH", 	"KEYPAD_ASTERISK", 	"KEYPAD_MINUS", 	"KEYPAD_PLUS", 	"KEYPAD_ENTER", 	"P1", 	"P2", 	"P3", 	"P4", 	"P5", 	"P6", 	"P7", 	"P8", 	"P9", 	"P0", 	"KEYPAD_DOT_AND_DELETE", 	"NON_US_BACKSLASH_AND_PIPE", 	"APPLICATION", 	"POWER", 	"KEYPAD_EQUAL_SIGN", 	"F13", 	"F14", 	"F15", 	"F16", 	"F17", 	"F18", 	"F19", 	"F20", 	"F21", 	"F22", 	"F23", 	"F24", 	"EXECUTE", 	"HELP", 	"MANU", 	"SELECT", 	"STOP", 	"AGAIN", 	"UNDO", 	"CUT", 	"COPY", 	"PASTE", 	"FIND", 	"MUTE", 	"VOLUME_UP", 	"VOLUME_DOWN", 	"LOCKING_CAPS_LOCK", 	"LOCKING_NUM_LOCK", 	"LOCKING_SCROLL_LOCK", 	"KEYPAD_COMMA", 	"KEYPAD_EQUAL_SIGN_AS400", 	"INTERNATIONAL1", 	"INTERNATIONAL2", 	"INTERNATIONAL3", 	"INTERNATIONAL4", 	"INTERNATIONAL5", 	"INTERNATIONAL6", 	"INTERNATIONAL7", 	"INTERNATIONAL8", 	"INTERNATIONAL9", 	"LANG1", 	"LANG2", 	"LANG3", 	"LANG4", 	"LANG5", 	"LANG6", 	"LANG7", 	"LANG8", 	"LANG9", 	"ALTERNATE_ERASE", 	"SISREQ", 	"CANCEL", 	"CLEAR", 	"PRIOR", 	"RETURN", 	"SEPARATOR", 	"OUT", 	"OPER", 	"CLEAR_AND_AGAIN", 	"CRSEL_ANDPROPS", 	"EXSEL", 	"KEYPAD_00", 	"KEYPAD_000", 	"THOUSANDS_SEPARATOR", 	"DECIMAL_SEPARATOR", 	"CURRENCY_UNIT", 	"CURRENCY_SUB_UNIT", 	"KEYPAD_OPENING_PARENTHESIS", 	"KEYPAD_CLOSING_PARENTHESIS", 	"KEYPAD_OPENING_BRACE", 	"KEYPAD_CLOSING_BRACE", 	"KEYPAD_TAB", 	"KEYPAD_BACKSPACE", 	"KEYPAD_A", 	"KEYPAD_B", 	"KEYPAD_C", 	"KEYPAD_D", 	"KEYPAD_E", 	"KEYPAD_F", 	"KEYPAD_XOR", 	"KEYPAD_CARET", 	"KEYPAD_PERCENTAGE", 	"KEYPAD_LESS_THAN_SIGN", 	"KEYPAD_GREATER_THAN_SIGN", 	"KEYPAD_AMP", 	"KEYPAD_AMP_AMP", 	"KEYPAD_PIPE", 	"KEYPAD_PIPE_PIPE", 	"KEYPAD_COLON", 	"KEYPAD_HASHMARK", 	"KEYPAD_SPACE", 	"KEYPAD_AT", 	"KEYPAD_EXCLAMATION_SIGN", 	"KEYPAD_MEMORY_STORE", 	"KEYPAD_MEMORY_RECALL", 	"KEYPAD_MEMORY_CLEAR", 	"KEYPAD_MEMORY_ADD", 	"KEYPAD_MEMORY_SUBTRACT", 	"KEYPAD_MEMORY_MULTIPLY", 	"KEYPAD_MEMORY_DIVIDE", 	"KEYPAD_PLUS_AND_MINUS", 	"KEYPAD_CLEAR", 	"KEYPAD_CLEAR_ENTRY", 	"KEYPAD_BINARY", 	"KEYPAD_OCTAL", 	"KEYPAD_DECIMAL", 	"KEYPAD_HEXADECIMAL", 	"LEFT_CONTROL", 	"LEFT_SHIFT", 	"LEFT_ALT", 	"LEFT_GUI", 	"RIGHT_CONTROL", 	"RIGHT_SHIFT", 	"RIGHT_ALT", 	"RIGHT_GUI", 	"MOUSELEFT"};
-unsigned char Dongle::KeyCodesDB[219] = {0x01, 	0x02, 	0x03, 	0x04, 	0x05, 	0x06, 	0x07, 	0x08, 	0x09, 	0x0A, 	0x0B, 	0x0C, 	0x0D, 	0x0E, 	0x0F, 	0x10, 	0x11, 	0x12, 	0x13, 	0x14, 	0x15, 	0x16, 	0x17, 	0x18, 	0x19, 	0x1A, 	0x1B, 	0x1C, 	0x1D, 	0x1E, 	0x1F, 	0x20, 	0x21, 	0x22, 	0x23, 	0x24, 	0x25, 	0x26, 	0x27, 	0x28, 	0x29, 	0x2A, 	0x2B, 	0x2C, 	0x2D, 	0x2E, 	0x2F, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0x3A, 	0x3B, 	0x3C, 	0x3D, 	0x3E, 	0x3F, 	0x40, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 	0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 	0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x5B, 	0x5C, 	0x5D, 	0x5E, 	0x5F, 	0x60, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 	0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x7B, 	0x7C, 	0x7D, 	0x7E, 	0x7F, 	0x80, 	0x81, 	0x82, 	0x83, 	0x84, 	0x85, 	0x86, 	0x87, 	0x88, 	0x89, 	0x8A, 	0x8B, 	0x8C, 	0x8D, 	0x8E, 	0x8F, 	0x90, 	0x91, 	0x92, 	0x93, 	0x94, 	0x95, 	0x96, 	0x97, 	0x98, 	0x99, 	0x9A, 	0x9B, 	0x9C, 	0x9D, 	0x9E, 	0x9F, 	0xA0, 	0xA1, 	0xA2, 	0xA3, 	0xA4, 	0xB0, 	0xB1, 	0xB2, 	0xB3, 	0xB4, 	0xB5, 	0xB6, 	0xB7, 	0xB8, 	0xB9, 	0xBA, 	0xBB, 	0xBC, 	0xBD, 	0xBE, 	0xBF, 	0xC0, 	0xC1, 	0xC2, 	0xC3, 	0xC4, 	0xC5, 	0xC6, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0xCD, 	0xCE, 	0xCF, 	0xD0, 	0xD1, 	0xD2, 	0xD3, 	0xD4, 	0xD5, 	0xD6, 	0xD7, 	0xD8, 	0xD9, 	0xDA, 	0xDB, 	0xDC, 	0xDD, 	0xE0, 	0xE1, 	0xE2, 	0xE3, 	0xE4, 	0xE5, 	0xE6, 	0xE7, 	0xFF};
+char* Dongle::KeyMnemonicDB[KEY_DB_SIZE] = {"ERROR_ROLLOVER", 	"POST_FAIL", 	"ERROR_UNDEFINED", 	"A", 	"B", 	"C", 	"D", 	"E", 	"F", 	"G", 	"H", 	"I", 	"J", 	"K", 	"L", 	"M", 	"N", 	"O", 	"P", 	"Q", 	"R", 	"S", 	"T", 	"U", 	"V", 	"W", 	"X", 	"Y", 	"Z", 	"1", 	"2", 	"3", 	"4", 	"5", 	"6", 	"7", 	"8", 	"9", 	"0", 	"ENTER", 	"ESCAPE", 	"BACKSPACE", 	"TAB", 	"SPACE", 	"-", 	"=", 	"[", 	"]", 	"\\", 	"`", 	";", 	"", 	"GRAVE_ACCENT_AND_TILDE", 	",", 	".", 	"/", 	"CAPS_LOCK", 	"F1", 	"F2", 	"F3", 	"F4", 	"F5", 	"F6", 	"F7", 	"F8", 	"F9", 	"F10", 	"F11", 	"F12", 	"PRINT_SCREEN", 	"SCROLL_LOCK", 	"PAUSE", 	"INSERT", 	"HOME", 	"PAGE_UP", 	"DELETE", 	"END", 	"PAGE_DOWN", 	"RIGHT_ARROW", 	"LEFT_ARROW", 	"DOWN_ARROW", 	"UP_ARROW", 	"NUM_LOCK", 	"KEYPAD_SLASH", 	"KEYPAD_ASTERISK", 	"KEYPAD_MINUS", 	"KEYPAD_PLUS", 	"KEYPAD_ENTER", 	"P1", 	"P2", 	"P3", 	"P4", 	"P5", 	"P6", 	"P7", 	"P8", 	"P9", 	"P0", 	"KEYPAD_DOT_AND_DELETE", 	"NON_US_BACKSLASH_AND_PIPE", 	"APPLICATION", 	"POWER", 	"KEYPAD_EQUAL_SIGN", 	"F13", 	"F14", 	"F15", 	"F16", 	"F17", 	"F18", 	"F19", 	"F20", 	"F21", 	"F22", 	"F23", 	"F24", 	"EXECUTE", 	"HELP", 	"MANU", 	"SELECT", 	"STOP", 	"AGAIN", 	"UNDO", 	"CUT", 	"COPY", 	"PASTE", 	"FIND", 	"MUTE", 	"VOLUME_UP", 	"VOLUME_DOWN", 	"LOCKING_CAPS_LOCK", 	"LOCKING_NUM_LOCK", 	"LOCKING_SCROLL_LOCK", 	"KEYPAD_COMMA", 	"KEYPAD_EQUAL_SIGN_AS400", 	"INTERNATIONAL1", 	"INTERNATIONAL2", 	"INTERNATIONAL3", 	"INTERNATIONAL4", 	"INTERNATIONAL5", 	"INTERNATIONAL6", 	"INTERNATIONAL7", 	"INTERNATIONAL8", 	"INTERNATIONAL9", 	"LANG1", 	"LANG2", 	"LANG3", 	"LANG4", 	"LANG5", 	"LANG6", 	"LANG7", 	"LANG8", 	"LANG9", 	"ALTERNATE_ERASE", 	"SISREQ", 	"CANCEL", 	"CLEAR", 	"PRIOR", 	"RETURN", 	"SEPARATOR", 	"OUT", 	"OPER", 	"CLEAR_AND_AGAIN", 	"CRSEL_ANDPROPS", 	"EXSEL", 	"KEYPAD_00", 	"KEYPAD_000", 	"THOUSANDS_SEPARATOR", 	"DECIMAL_SEPARATOR", 	"CURRENCY_UNIT", 	"CURRENCY_SUB_UNIT", 	"KEYPAD_OPENING_PARENTHESIS", 	"KEYPAD_CLOSING_PARENTHESIS", 	"KEYPAD_OPENING_BRACE", 	"KEYPAD_CLOSING_BRACE", 	"KEYPAD_TAB", 	"KEYPAD_BACKSPACE", 	"KEYPAD_A", 	"KEYPAD_B", 	"KEYPAD_C", 	"KEYPAD_D", 	"KEYPAD_E", 	"KEYPAD_F", 	"KEYPAD_XOR", 	"KEYPAD_CARET", 	"KEYPAD_PERCENTAGE", 	"KEYPAD_LESS_THAN_SIGN", 	"KEYPAD_GREATER_THAN_SIGN", 	"KEYPAD_AMP", 	"KEYPAD_AMP_AMP", 	"KEYPAD_PIPE", 	"KEYPAD_PIPE_PIPE", 	"KEYPAD_COLON", 	"KEYPAD_HASHMARK", 	"KEYPAD_SPACE", 	"KEYPAD_AT", 	"KEYPAD_EXCLAMATION_SIGN", 	"KEYPAD_MEMORY_STORE", 	"KEYPAD_MEMORY_RECALL", 	"KEYPAD_MEMORY_CLEAR", 	"KEYPAD_MEMORY_ADD", 	"KEYPAD_MEMORY_SUBTRACT", 	"KEYPAD_MEMORY_MULTIPLY", 	"KEYPAD_MEMORY_DIVIDE", 	"KEYPAD_PLUS_AND_MINUS", 	"KEYPAD_CLEAR", 	"KEYPAD_CLEAR_ENTRY", 	"KEYPAD_BINARY", 	"KEYPAD_OCTAL", 	"KEYPAD_DECIMAL", 	"KEYPAD_HEXADECIMAL", 	"LEFT_CONTROL", 	"LEFT_SHIFT", 	"LEFT_ALT", 	"LEFT_GUI", 	"RIGHT_CONTROL", 	"RIGHT_SHIFT", 	"RIGHT_ALT", 	"RIGHT_GUI",
+"MOUSE_LEFT", "MOUSE_RIGHT", "MOUSE_MIDDLE", "MOUSE_4th", "MOUSE_5th"};
+unsigned char Dongle::KeyCodesDB[KEY_DB_SIZE] = {0x01, 	0x02, 	0x03, 	0x04, 	0x05, 	0x06, 	0x07, 	0x08, 	0x09, 	0x0A, 	0x0B, 	0x0C, 	0x0D, 	0x0E, 	0x0F, 	0x10, 	0x11, 	0x12, 	0x13, 	0x14, 	0x15, 	0x16, 	0x17, 	0x18, 	0x19, 	0x1A, 	0x1B, 	0x1C, 	0x1D, 	0x1E, 	0x1F, 	0x20, 	0x21, 	0x22, 	0x23, 	0x24, 	0x25, 	0x26, 	0x27, 	0x28, 	0x29, 	0x2A, 	0x2B, 	0x2C, 	0x2D, 	0x2E, 	0x2F, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0x3A, 	0x3B, 	0x3C, 	0x3D, 	0x3E, 	0x3F, 	0x40, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 	0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 	0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x5B, 	0x5C, 	0x5D, 	0x5E, 	0x5F, 	0x60, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 	0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x7B, 	0x7C, 	0x7D, 	0x7E, 	0x7F, 	0x80, 	0x81, 	0x82, 	0x83, 	0x84, 	0x85, 	0x86, 	0x87, 	0x88, 	0x89, 	0x8A, 	0x8B, 	0x8C, 	0x8D, 	0x8E, 	0x8F, 	0x90, 	0x91, 	0x92, 	0x93, 	0x94, 	0x95, 	0x96, 	0x97, 	0x98, 	0x99, 	0x9A, 	0x9B, 	0x9C, 	0x9D, 	0x9E, 	0x9F, 	0xA0, 	0xA1, 	0xA2, 	0xA3, 	0xA4, 	0xB0, 	0xB1, 	0xB2, 	0xB3, 	0xB4, 	0xB5, 	0xB6, 	0xB7, 	0xB8, 	0xB9, 	0xBA, 	0xBB, 	0xBC, 	0xBD, 	0xBE, 	0xBF, 	0xC0, 	0xC1, 	0xC2, 	0xC3, 	0xC4, 	0xC5, 	0xC6, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0xCD, 	0xCE, 	0xCF, 	0xD0, 	0xD1, 	0xD2, 	0xD3, 	0xD4, 	0xD5, 	0xD6, 	0xD7, 	0xD8, 	0xD9, 	0xDA, 	0xDB, 	0xDC, 	0xDD, 	0xE0, 	0xE1, 	0xE2, 	0xE3, 	0xE4, 	0xE5, 	0xE6, 	0xE7,
+                                                 0xF0, 	0xF1, 	0xF2, 	0xF3, 	0xF4};
 
 
 Dongle::Dongle()
@@ -10,9 +12,16 @@ Dongle::Dongle()
     state = STATE_DISCONNECTED;
     handle = NULL;
     activity = DO_NORMAL;
-    current_groups_state = GROUPS_DISCONNECTED;
-    for(int i = 0; i < KEYNUM; i++) key_transfer_state[i] = false;
+    device_state         = DS_OFF;
+    current_device_state = DS_OFF;
 
+    device_mode          = DM_AUTO;
+    current_device_mode  = DM_AUTO;
+
+    groups_state         = GROUPS_DISCONNECTED;
+    current_groups_state = GROUPS_DISCONNECTED;
+
+    for(int i = 0; i < KEYNUM; i++) key_transfer_state[i] = false;
     connect();
 }
 
@@ -33,7 +42,7 @@ void Dongle::process()
         if(currentl2w != NULL){
             currentl2w->check();
 
-            if(state == STATE_ON || state == STATE_OFF || state == STATE_ACTIVE) {
+            if(state == STATE_ON || state == STATE_OFF) {
                 switch (activity) {
                 case DO_WRITEALLTODONGLE:
                     sendCMD_DELETE_ALL();
@@ -67,16 +76,20 @@ void Dongle::process()
                     }
                     break;
                 case DO_SETDONGLEON:
-                    sendCMD_SET_STATE(true);
+                    device_state = DS_ON;
+                    sendCMD_SET_STATE();
                     break;
                 case DO_SETDONGLEOFF:
-                    sendCMD_SET_STATE(false);
+                    device_state = DS_ON;
+                    sendCMD_SET_STATE();
                     break;
                 case DO_CHANGEDONGLEGROUP:
                     if(state == STATE_OFF) {
-                        sendCMD_SET_STATE(false);
+                        device_state = DS_OFF;
+                        sendCMD_SET_STATE();
                     } else {
-                        sendCMD_SET_STATE(true);
+                        device_state = DS_ON;
+                        sendCMD_SET_STATE();
                     }
                     break;
                 default:
@@ -86,6 +99,12 @@ void Dongle::process()
 
                 recieve_status() ;
                 transmitHPCPMP();
+                #ifdef WIN32
+                    Sleep(10);
+                #else
+                    usleep(10*1000);
+                #endif
+                sendCMD_SET_TARGET_STATE();
             }
         }
         emit showStatus(state, current_groups_state, updateTime.elapsed());
@@ -109,26 +128,35 @@ void Dongle::setActiveL2W(L2Window* l2w)
 
 
 void Dongle::recieve_status() {
-
     qDebug("Dongle::recieve_status");
     unsigned char buf[9];
     memset(buf,0,sizeof(buf));
 
     buf[0] = 0;
+    unsigned char res;
+    try {
+        res =  hid_get_input_report(handle, buf, sizeof(buf));
+    } catch(...) {
+        res = -1;
+    }
 
-    if (hid_get_input_report(handle, buf, sizeof(buf))==-1)
+    if (res == -1)
     {
         qDebug("Ошибка при  приёме данных");
         disconnect();
     } else {
         //qDebug("Recieved %d %d", buf[0], buf[1]);
-        buf[1] = buf[1] & DEVICE_STATUS_MASK;
-        if( (buf[1] & 0b00000001) == 0) {
+
+        current_device_state = buf[1] & DEVICE_STATUS_MASK;
+        current_groups_state = buf[1] & DEVICE_GROUP_MASK;
+        current_device_mode  = buf[1] & DEVICE_MODE_MASK;
+
+        if(current_device_state == 0) {
             state = STATE_OFF;
         } else {
             state = STATE_ON;
         }
-        current_groups_state = buf[1] & 0b00111100;
+
     }
 }
 
@@ -140,7 +168,11 @@ int Dongle::connect()
     // Open the device using the VID, PID,
     // and optionally the Serial number.
     //handle = hid_open(0x03eb, 0x204d, L"12345");
-    handle = hid_open(0x03eb, 0x204d, NULL);
+    try {
+        handle = hid_open(0x03eb, 0x204d, NULL);
+    } catch(...) {
+        ;
+    }
     if (!handle) {
         qDebug("unable to open device\n");
         state = STATE_DISCONNECTED;
@@ -149,8 +181,12 @@ int Dongle::connect()
         return state;
     }
     // Set the hid_read() function to be non-blocking.
-    hid_set_nonblocking(handle, 1);
 
+    try {
+        hid_set_nonblocking(handle, 1);
+    } catch(...) {
+       ;
+    }
     state = STATE_OFF;
     activity = DO_WRITEALLTODONGLE;
     return state;
@@ -160,10 +196,24 @@ int Dongle::disconnect()
 {
     qDebug("Dongle::disconnect()");
 
-    hid_close(handle);
+    try {
+        hid_close(handle);
+    } catch(...) {
+        ;;
+        qDebug("hid_close failed\n");
+
+    }
 
     /* Free static HIDAPI objects. */
-    hid_exit();
+
+    try {
+        hid_exit();
+    } catch(...) {
+        ;;
+        qDebug("hid_exit failed\n");
+
+    }
+
     state = STATE_DISCONNECTED;
     current_groups_state = GROUPS_DISCONNECTED;
 
@@ -195,10 +245,15 @@ int Dongle::send_command(int device, int command, unsigned char* cmd_arg)
 
         int current_state = state;
         state = STATE_TRANSMIT_CONF;
-        res = hid_write(handle, buf, 9);
+
+        try {
+            res = hid_write(handle, buf, 9);
+        } catch(...) {
+            res = -1;
+        }
         if (res < 0) {
             qDebug("Unable to write()\n");
-            qDebug("Error: %ls\n", hid_error(handle));
+ //           qDebug("Error: %ls\n", hid_error(handle));
             return disconnect();
         }
         state = current_state;
@@ -208,9 +263,36 @@ int Dongle::send_command(int device, int command, unsigned char* cmd_arg)
 
 
 
+int Dongle::set_key_report(unsigned char key_code, bool Ctrl, bool Shift)
+{
+    qDebug("int Dongle::send_key(QString Key, bool Ctrl, bool Shift)command");
+
+    unsigned char hpbuf[HID_REPORT_SIZE-3];
+    memset(hpbuf,0,sizeof(hpbuf));
+        // Modifiers:
+    if(Ctrl) hpbuf[5]  |= HID_KEYBOARD_MODIFIER_LEFTCTRL;
+    if(Shift) hpbuf[5]  |= HID_KEYBOARD_MODIFIER_LEFTSHIFT;
+    send_command(SERVICE_CONFIG, key_code, hpbuf);
+}
+
+int Dongle::send_key(QString Key, bool Ctrl, bool Shift)
+{
+    qDebug("int Dongle::send_key(QString Key, bool Ctrl, bool Shift)command");
+    unsigned char key_code = string2keycode(Key);
+    set_key_report(key_code, Ctrl, Shift);
+    #ifdef WIN32
+        Sleep(60);
+    #else
+        usleep(60*1000);
+    #endif
+    set_key_report(0x00, false, false);
+
+    return(state);
+}
+
 
 unsigned char Dongle::string2keycode(QString Key){
-    for(int i = 0; i< 219; i++){
+    for(int i = 0; i< KEY_DB_SIZE; i++){
         if(strcmp(KeyMnemonicDB[i], Key.toStdString().c_str()) == 0) return KeyCodesDB[i];
     }
     return(0);
@@ -231,32 +313,30 @@ void Dongle::transmitHPCPMP(){
 
     qDebug("idHP: %d, idMP: %d, idMobHP: %d", hpbuf[1], hpbuf[3], hpbuf[0]);
 
-    send_command(INTERFACE_ID_Keyboard, CMD_SET_HPCPMP, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_SET_HPCPMP, hpbuf);
 
 }
 
-void Dongle::sendCMD_SET_STATE(bool stt) {
-
-    qDebug("Dongle::sendCMD_SET_STATE: %d", stt);
-
+void Dongle::sendCMD_SET_STATE() {
+    qDebug("Dongle::sendCMD_SET_STATE");
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     memset(hpbuf,0,sizeof(hpbuf));
-    unsigned char tmp_state = groups_state;
-    tmp_state |= stt;
-    send_command(INTERFACE_ID_GenericHID, tmp_state, hpbuf);
+    send_command(SERVICE_DEVICE, groups_state|device_mode|device_state, hpbuf);
 }
 
-void Dongle::sendCMD_WRITE_CONFIG(){
+
+void Dongle::sendCMD_SET_TARGET_STATE(){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
+    qDebug("Dongle::sendCMD_SET_TARGET_STATE");
     memset(hpbuf,0,sizeof(hpbuf));
-    send_command(INTERFACE_ID_Keyboard, CMD_WRITE_CONFIG, hpbuf);
+    hpbuf[0] = getTargetType();
+    hpbuf[1] = getStarState();
+    qDebug("TargetType: %d, StarState: %d", hpbuf[0], hpbuf[1]);
+
+    send_command(SERVICE_CONFIG, CMD_SET_TARGET_STATE, hpbuf);
 }
 
-void Dongle::sendCMD_READ_CONFIG(){
-    unsigned char hpbuf[HID_REPORT_SIZE-3];
-    memset(hpbuf,0,sizeof(hpbuf));
-    send_command(INTERFACE_ID_Keyboard, CMD_READ_CONFIG, hpbuf);
-}
+
 
 void Dongle::sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime, unsigned int groups, bool Ctrl, bool Shift){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
@@ -280,7 +360,7 @@ void Dongle::sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, f
     if(Shift)     hpbuf[5] |= 0b00000001; // Shift
 
     qDebug("CMD_ADD_NODE %s, Cooldown (0.1s) %d, Abs (0.5s) %d, Cond (0.5s) %d", Key.toStdString().c_str(), hpbuf[2]+hpbuf[3]*256, hpbuf[1], hpbuf[4]);
-    send_command(INTERFACE_ID_Keyboard, CMD_ADD_NODE, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_ADD_NODE, hpbuf);
 }
 
 void Dongle::sendCMD_DELETE_NODE(QString Key){
@@ -288,14 +368,14 @@ void Dongle::sendCMD_DELETE_NODE(QString Key){
     memset(hpbuf,0,sizeof(hpbuf));
 
     hpbuf[0] = string2keycode(Key);
-    send_command(INTERFACE_ID_Keyboard, CMD_DELETE_NODE, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_DELETE_NODE, hpbuf);
 }
 
 
 void Dongle::sendCMD_DELETE_ALL(){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     memset(hpbuf,0,sizeof(hpbuf));
-    send_command(INTERFACE_ID_Keyboard, CMD_DELETE_ALL, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_DELETE_ALL, hpbuf);
 }
 
 
@@ -308,7 +388,7 @@ void Dongle::sendCMD_SET_MODIFIER(bool Ctrl, bool Shift){
 //    QTextStream(&label) << "Ctrl " << Ctrl << " + Shift " << Shift << " = " << hpbuf[0];
 
 //    QMessageBox::information(NULL,"SendModifyer",label);
-    send_command(INTERFACE_ID_Keyboard, CMD_SET_MODIFIER, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_SET_MODIFIER, hpbuf);
 }
 
 
@@ -337,20 +417,23 @@ void Dongle::sendCMD_ADD_NODE_CONDITION(QString Key, unsigned char Type, unsigne
         hpbuf[1] = 0; //    Global Const $t_mobHP = 0 ;/** Mob HP */
         break;
     case idMobMP:
-        hpbuf[1] = 4; //
-        break;
-    case idVP:
         hpbuf[1] = 5; //
         break;
-    default:
+    case idVP:
+        hpbuf[1] = 4; //
+        break;
+    case idTargetType:
         hpbuf[1] = 6; //
+        break;
+    default:
+        hpbuf[1] = 7; //
         break;
     }
 
     hpbuf[2] = (Min >=0 && Min <=100)? Min: 0xFF; //$Min
     hpbuf[3] = (Max >=0 && Max <=100)? Max: 0xFF;  // $Max
 
-    send_command(INTERFACE_ID_Keyboard, CMD_ADD_NODE_CONDITION, hpbuf);
+    send_command(SERVICE_CONFIG, CMD_ADD_NODE_CONDITION, hpbuf);
 }
 
 unsigned char Dongle::getXP(int idXP){
@@ -358,6 +441,26 @@ unsigned char Dongle::getXP(int idXP){
         return XP_ERR;
     } else {
         return currentl2w->getXP(idXP);
+    }
+}
+
+unsigned char Dongle::getTargetType(){
+    if(currentl2w == NULL){
+        return NOTARGET;
+    } else {
+        return currentl2w->targettype;
+    }
+}
+
+unsigned char Dongle::getStarState(){
+    if(currentl2w == NULL){
+        return 0;
+    } else {
+        if(currentl2w->getStarState()){
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }
 
@@ -386,9 +489,22 @@ void Dongle::sendKeyToDongle(int condition_index){
                                 j,
                                 currentl2w->getCurrentSettings()->condition[condition_index]->conditioni[j],
                                 currentl2w->getCurrentSettings()->condition[condition_index]->conditioni[BARNUM+j]
-                                );
+                        );
             }
         }
+        if(
+            (currentl2w->getCurrentSettings()->condition[condition_index]->getTargetTypeBinaryState() < 0x00001111) || // Target Condition
+            ((currentl2w->getCurrentSettings()->condition[condition_index]->getStarStatusBinaryState() & 0b00000010) > 0)// Star Condition
+        ){
+            sendCMD_ADD_NODE_CONDITION(
+                            currentl2w->getCurrentSettings()->condition[condition_index]->KeyString,
+                            idTargetType,
+                            currentl2w->getCurrentSettings()->condition[condition_index]->getTargetTypeBinaryState(), // Target Condition
+                            currentl2w->getCurrentSettings()->condition[condition_index]->getStarStatusBinaryState()  // Star Condition
+                      );
+        }
+
+
     } else {
         sendCMD_DELETE_NODE(currentl2w->getCurrentSettings()->condition[condition_index]->KeyString);
     }

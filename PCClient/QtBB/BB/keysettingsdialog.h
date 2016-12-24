@@ -27,8 +27,10 @@ private:
     Ui::KeySettingsDialog *ui;
     QLineEdit* controlf[CONDFNUM];
     QLineEdit* controli[CONDINUM];
+    QCheckBox* controlb[CONDBNUM];
     KeyCondition* condition;
-    QCheckBox *keyenable2[CONDBNUM];
+    //QCheckBox *keyenable2[GROUPSNUM];
+    //QCheckBox *targettype[TARGETTYPENUM];
 
 public slots:
     void textFChanged(QString text);

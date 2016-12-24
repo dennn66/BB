@@ -10,12 +10,15 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QThread>
+#include <QtMultimedia/QSound>
+#include <QtMultimedia/QMediaPlayer>
 #include <QProgressBar>
 #include <QGraphicsScene>
 #include <QKeyEvent>
 #include "SystemKeyboardReadWrite.h"
 #include "l2window.h"
 #include "dongle.h"
+#include "l2parser.h"
 #include "keysettingsdialog.h"
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam);
@@ -35,20 +38,32 @@ public:
 private:
     Ui::BoredomBreaker *ui;
     QVector <L2Window*> l2list;
+
     QLabel *keylabel[KEYNUM];
     QCheckBox *keyenable[KEYNUM];
-    QCheckBox *keyenable2[CONDBNUM];
+    QCheckBox *keyenable2[GROUPSNUM];
     QPushButton *keysettings[KEYNUM];
     QThread* dongle_thread;
     Dongle* dongle;
+
+    QThread* l2_parser_thread;
+    L2parser* l2_parser;
+
+
     bool group_enable[CONDBNUM];
     QProgressBar *pb[BARNUM];
     SystemKeyboardReadWrite *kb;
     bool bModifier;
+    bool bEnableSound;
+    bool bEnableModifier;
+    DWORD vkModifierCode;
+    DWORD vkActivationKeyCode;
+    QString default_file_name;
 
     int ellipsed_time;
     static char* StyleSheet[BARNUM+1];
     static char* StyleSheetCheckBox[5];
+    static char* StyleSheetLabel[2];
 
     void enumerateL2();
     bool isValidIndex(int index);

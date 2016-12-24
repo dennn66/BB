@@ -9,7 +9,7 @@ XPBar::XPBar()
     yXP=0;
 
 }
-
+/*
 bool XPBar::findXPBar(QImage image,  RECT targetRect){
 
     RECT rect;
@@ -126,7 +126,7 @@ bool XPBar::findXPBar(QImage image,  RECT targetRect){
 
     return status;
 }
-
+*/
 
 bool XPBar::CompareColors(QRgb color1, QRgb color2, UINT8 delta)
 {
@@ -180,30 +180,56 @@ bool XPBar::checkXPBar(QImage image){
   int position = xBegin;
   int counter = 0;
   int validator = 0;
-    if(status == BAR_OFF)  return(false);
+    if(status == BAR_OFF)  {
+      //  qDebug("XPBar::checkXPBar bar %d is OFF", barID);
+        return(false);
+    }
     if(xEnd > image.width() || yXP > image.height()){
         status = BAR_OFF;
         return(false);
     }
+
+
+//    QImage icotmp=image.copy(xBegin, yXP-5, xEnd-xBegin,  11);
+//    QString fn;
+//    QTextStream(&fn)<< barID << ".png";
+
+
+             // image.setPixel(i, bar[j].getY(), qRgb(128, 128, 128));
+
     for(int j=xBegin;j<xEnd;j++) {
         if(findPixel(image, j, 2, barcolor, 5)){
+//            icotmp.setPixel(j, 0, qRgb(128, 128, 128));
+//            icotmp.setPixel(j, 6, qRgb(0, 255, 0));
+//            icotmp.setPixel(j, 10, qRgb(128, 128, 128));
             counter++;
             validator++;
             max = (counter > max)? counter: max;
             position = (counter == max)? j:position;
         } else if(findPixel(image, j, 2, barbkclr, 5)){
+//            icotmp.setPixel(j, 0, qRgb(255, 255, 255));
+//            icotmp.setPixel(j, 6, qRgb(255, 255, 0));
+//            icotmp.setPixel(j, 10, qRgb(255, 255, 255));
             counter--;
             validator++;
             max = (counter > max)? counter: max;
             position = (counter == max)? j:position;
         }
     }
+    position = (position <xBegin )? xBegin:position;
+    position = (position >xEnd )? xEnd:position;
 
-     XP = ((position- xBegin)*100)/barsize;
+//    icotmp.setPixel(position, 0, qRgb(0, 0, 255));
+//    icotmp.setPixel(position, 10, qRgb(0, 0, 255));
+
+//    icotmp.save(fn);
+
+    XP = ((position- xBegin)*100)/barsize;
 
     if(validator < barsize/20){
+        //qDebug("XPBar::checkXPBar validator %d is under limit. Status^ %d", barID, status == BAR_ON);
          if(barID == idMobHP || barID == idMobMP ){
-             XP = 0;
+             XP = XP_ERR; //0;
          } else {
              XP = XP_ERR;
          }

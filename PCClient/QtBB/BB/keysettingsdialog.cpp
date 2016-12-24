@@ -70,21 +70,41 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
     QString key_label = "B";
     QTextStream key_label_stream(&key_label);
 
-    for(int i=0;i<CONDBNUM;i++)
+    for(int i=0;i<GROUPSNUM;i++)
     {
         int j=0;
         key_label = "B";
         key_label_stream <<  i+1;
         QGridLayout *sell  = new QGridLayout;
-        keyenable2[i] = new QCheckBox(key_label.toStdString().c_str());
-        sell->addWidget(keyenable2[i],0, 0);
-        keyenable2[i]->setChecked (condition->getGroupState(i));
+        controlb[idGroupB1+i] = new QCheckBox(key_label.toStdString().c_str());
+        sell->addWidget(controlb[idGroupB1+i],0, 0);
+        controlb[idGroupB1+i]->setChecked (condition->getGroupState(i));
         layout_2->addLayout(sell,i, j);
     }
     ui->chkbox_widget_2->setLayout(layout_2);
+    controlb[idCheckStar] = ui->cbCheckStar;
+    controlb[idCheckStar]->setChecked (condition->conditionb[idCheckStar]);
+    controlb[idStarState] = ui->cbStarState;
+    controlb[idStarState]->setChecked (condition->conditionb[idStarState]);
 
-    for(int i = 0; i< CONDBNUM; i++){
-        connect(keyenable2[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
+    QGridLayout *layout_3 = new QGridLayout;
+    for(int i=0;i<2;i++)
+    {
+        for(int j=0;j<2;j++)
+        {
+        //int j=0;
+            key_label = condition->conditionb_name[idTargetMeOrPet+i+j*2];
+            QGridLayout *sell  = new QGridLayout;
+            controlb[idTargetMeOrPet+i+j*2] = new QCheckBox(key_label.toStdString().c_str());
+            sell->addWidget(controlb[idTargetMeOrPet+i+j*2],0, 0);
+            controlb[idTargetMeOrPet+i+j*2]->setChecked (condition->conditionb[idTargetMeOrPet+i+j*2]);
+            layout_3->addLayout(sell,i, j);
+        }
+    }
+    ui->gbTargetType->setLayout(layout_3);
+
+    for(int i=0;i<CONDBNUM;i++){
+        connect(controlb[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
     }
 
 
@@ -101,9 +121,9 @@ void KeySettingsDialog::cbKeyEnableBxClicked(bool checked){
     if( cb != NULL )
     {
         int i = 0;
-        while( (i < CONDBNUM) && keyenable2[i] != cb){i++;}
+        while( (i < CONDBNUM) && controlb[i] != cb){i++;}
         if(i<CONDBNUM){
-            condition->setGroupState(i, checked);
+            condition->conditionb[i] = checked;
         }
     }
 }

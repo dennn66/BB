@@ -79,6 +79,12 @@
 		#define DEVICE_STATUS_STATE      0
 		#define DEVICE_STATUS_ACTIVE     1
 		
+#define USB_MOUSE_BTN_MASK      0x1F
+#define USB_MOUSE_BTN_LEFT      0
+#define USB_MOUSE_BTN_RIGHT     1
+#define USB_MOUSE_BTN_MIDDLE    2
+#define USB_MOUSE_BTN_4th       3
+#define USB_MOUSE_BTN_5th       4
 
 
 	/* Function Prototypes: */
@@ -95,9 +101,10 @@
 		void led_indicator_task(uint16_t time_delta);
 		void host_timeout_task(uint16_t time_delta);
 
-
+		void setDebugFlag(int8_t state);
 		uint8_t get_activeState(void);
 		uint8_t get_deviceState(void);
+		uint8_t get_deviceMode(void) ;
 		uint8_t* get_newMouseHIDReportBuffer(void);
 		uint8_t* get_newKeyboardHIDReportBuffer(void);
 		uint8_t get_expectKeyboardReport(void);
@@ -129,8 +136,15 @@
 				CMD_SET_MODIFIER = 5, /** set active config Modifier  */
 				CMD_SET_HPCPMP = 6, /** set param values  */
 				CMD_ADD_NODE_CONDITION = 7, /** set param values  */
-				CMD_SET_MODE = 8, /** set mode  */
+				CMD_SET_TARGET_STATE = 8, /** set star state and type of target  */
 		};
+		
+		
+#define SERVICE_CONFIG     0     /**< set Device config */
+#define SERVICE_MOUSE      1     /**< set Mouse msg */
+#define SERVICE_DEVICE     2     /**< set Device operating mode */
+#define SERVICE_KEYBOARD   3     /**< set Keyboard msg */
+
 		
 
 #endif

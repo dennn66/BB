@@ -8,11 +8,16 @@
 #define BTN_FLAG_CTRL 3
 #define BTN_FLAG_SHIFT 2
 
-		enum Mode_t
-		{
-			SPAMBUTTONS = 0, /** Spam buttons  */
-			HOSTCOMMAND = 1, /** Wait for host command  */
-		};
+#define TARGETMEORPET   0
+#define TARGETCHAR      1
+#define TARGETMOB       2
+#define NOTARGET        3
+
+//		enum Mode_t
+//		{
+//			SPAMBUTTONS = 0, /** Spam buttons  */
+//			HOSTCOMMAND = 1, /** Wait for host command  */
+//		};
 												  
 		enum ButtonState_t
 		{
@@ -31,6 +36,8 @@
 				playerMP = 3, /** Player MP */
 				playerVP = 4, /** Player CP */
 				mobMP = 5, /** Player MP */
+				targetType = 6, /** Target Type */
+				starState = 7, /** Star State */
 		};
 
 	/* Type Defines: */
@@ -74,9 +81,10 @@
 	void List_Delete_Node(uint8_t KeyCode);
 	void List_Delete_All(void);
 	void spam_buttons_task(uint16_t time_delta);
-	void set_spam_buttons_mode(uint8_t mode); 
+	//void set_spam_buttons_mode(uint8_t mode); 
 	void host_timeout_task(uint16_t time_delta);
 	void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp, uint8_t vp, uint8_t mobmp);
+	void set_TargetState(uint8_t targettype, uint8_t starstate);
 
 
 #endif
