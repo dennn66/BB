@@ -19,7 +19,7 @@
 #define CMD_ADD_NODE            2
 #define CMD_DELETE_NODE         3
 #define CMD_DELETE_ALL          4
-#define CMD_SET_MODIFIER        5
+#define CMD_UNUSED              5
 #define CMD_SET_HPCPMP          6
 #define CMD_ADD_NODE_CONDITION  7
 #define CMD_SET_TARGET_STATE    8
@@ -42,37 +42,51 @@
 //#define STATE_ACTIVE            4
 
 
-#define DEVICE_STATUS_MASK      0b00000001
-#define DEVICE_MODE_MASK        0b00000010
-#define DEVICE_GROUP_MASK       0b00111100
+//#define DEVICE_STATUS_MASK      0b00000001
+//#define DEVICE_MODE_MASK        0b00000010
+//#define DEVICE_GROUP_MASK       0b00111100
 
 
-#define GROUPS_DISCONNECTED     0xFF
+//#define GROUPS_DISCONNECTED     0xFF
 
-#define DS_ON    0b00000001
-#define DS_OFF   0b00000000
+//#define DS_ON    0b00000001
+//#define DS_OFF   0b00000000
 
-#define DM_AUTO    0b00000000
-#define DM_DIRECT  0b00000010
+//#define DM_AUTO    0b00000000
+//#define DM_DIRECT  0b00000010
 
 
 #define DO_NORMAL               0
 #define DO_WRITEALLTODONGLE     1
 #define DO_WRITEKEYTODONGLE     2
-#define DO_SETDONGLEON          3
-#define DO_SETDONGLEOFF         4
-#define DO_CHANGEDONGLEGROUP    5
-
-
+#define DO_SETDEVICESTATE       3
 
 #define HID_REPORT_SIZE         9
 
 #define 	HID_KEYBOARD_MODIFIER_LEFTCTRL   (1 << 0)
-
 #define 	HID_KEYBOARD_MODIFIER_LEFTSHIFT   (1 << 1)
 
 #define KEY_DB_SIZE         223
 
+// Set device status
+// 0 - Device Status
+// 1 - Device Mode
+// 2 - Group 0 status
+// 3 - Group 1 status
+// 4 - Group 2 status
+// 5 - Group 3 status
+// 6 - Ctrl state
+// 7 - Shift state
+#define DEVICE_STATUS	0
+#define DEVICE_MODE		1
+#define GROUP_0			2
+#define GROUP_1			3
+#define GROUP_2			4
+#define GROUP_3			5
+#define DEVICE_CTRL		6
+#define DEVICE_SHIFT	7
+#define DEVICE_MASK      0b11111111
+#define GROUPS_MASK ((1<<GROUP_0)|(1<<GROUP_1)|(1<<GROUP_2)|(1<<GROUP_3))
 
 
 class Dongle : public QObject
@@ -83,34 +97,27 @@ public:
     Dongle();
 
     void doSendKeyToDongle(int condition_index);
-    void doSetState(bool stt);
-    void setGroupsState(unsigned int groups_state);
     void doSaveAllToDongle();
-    void sendCMD_SET_MODIFIER(bool Ctrl, bool Shift);
-
     void setActiveL2W(L2Window* l2w);
-
-
-    static char* KeyMnemonicDB[KEY_DB_SIZE];
+    void setDeviceState(unsigned char state);
+    static const char* KeyMnemonicDB[KEY_DB_SIZE];
     static unsigned char KeyCodesDB[KEY_DB_SIZE];
+    unsigned char getDeviceState(){return current_device_state;}
 
  public slots:
     void process();
 
+
 signals:
     void finished();
     void error(QString err);
-    void showStatus(int stt, int g_stt, int updatetime);
+    void showStatus(unsigned char d_stt, int updatetime);
 
 private:
     hid_device *handle;
     int state;
-    unsigned char device_state;
+    unsigned char target_device_state;
     unsigned char current_device_state;
-    unsigned char device_mode;
-    unsigned char current_device_mode;
-    unsigned char groups_state;
-    unsigned char current_groups_state;
     int activity;
     L2Window* currentl2w;
     bool key_transfer_state[KEYNUM];

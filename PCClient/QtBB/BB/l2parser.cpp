@@ -8,7 +8,7 @@ L2parser::L2parser(QObject *parent) : QObject(parent)
 
 void L2parser::process()
 {
-    qDebug("Start checker");
+    qDebug("Start l2 checker");
 
     while(1){
         QTime updateTime;

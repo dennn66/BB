@@ -25,7 +25,9 @@ SOURCES += main.cpp \
     keysettingsdialog.cpp \
     keyconditionsset.cpp \
     systemkeyboardreadwrite.cpp \
-    l2parser.cpp
+    l2parser.cpp \
+    clicker.cpp \
+    dongleworker.cpp
 
 HEADERS  += \
     boredombreaker.h \
@@ -37,11 +39,14 @@ HEADERS  += \
     keysettingsdialog.h \
     keyconditionsset.h \
     systemkeyboardreadwrite.h \
-    l2parser.h
+    l2parser.h \
+    clicker.h \
+    dongleworker.h
 
 FORMS    += \
     boredombreaker.ui \
-    keysettingsdialog.ui
+    keysettingsdialog.ui \
+    clicker.ui
 
 LIBS += -lhid
 LIBS += -lsetupapi

@@ -18,8 +18,10 @@
 #include "SystemKeyboardReadWrite.h"
 #include "l2window.h"
 #include "dongle.h"
+#include "dongleworker.h"
 #include "l2parser.h"
 #include "keysettingsdialog.h"
+#include "clicker.h"
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam);
 
@@ -43,14 +45,16 @@ private:
     QCheckBox *keyenable[KEYNUM];
     QCheckBox *keyenable2[GROUPSNUM];
     QPushButton *keysettings[KEYNUM];
-    QThread* dongle_thread;
-    Dongle* dongle;
+//    QThread* dongle_thread;
+    //Dongle* dongle;
+    DongleWorker* dongle_worker;
+    Clicker* clicker;
 
     QThread* l2_parser_thread;
     L2parser* l2_parser;
 
 
-    bool group_enable[CONDBNUM];
+//    bool group_enable[CONDBNUM];
     QProgressBar *pb[BARNUM];
     SystemKeyboardReadWrite *kb;
     bool bModifier;
@@ -61,21 +65,17 @@ private:
     QString default_file_name;
 
     int ellipsed_time;
-    static char* StyleSheet[BARNUM+1];
-    static char* StyleSheetCheckBox[5];
-    static char* StyleSheetLabel[2];
+    static const char* StyleSheet[BARNUM+1];
+    static const char* StyleSheetCheckBox[5];
+    static const char* StyleSheetLabel[2];
 
     void enumerateL2();
     bool isValidIndex(int index);
-    void toggleGroup(int group);
     void enableGroup(int group, bool state);
-    unsigned char getGroupsBinaryState();
-    bool getGroupBoolState(int group_num, unsigned char bin_state);
-
 
 
 public slots:
-    void showDongleStatus(int state, int g_state, int updatetime); /* */
+    void showDongleStatus(unsigned char d_stt, int updatetime); /* */
     void cbDongleClicked(bool checked);
     void cbCtrlShiftClicked(bool checked);
     void cbKeyEnableClicked(bool checked);
@@ -96,7 +96,13 @@ public slots:
     void keyGlobalReleased(DWORD vkCode);
 
 signals:
-    void setDongleState(int stt);
+    //void setDongleState(int stt);
+    void setDongleGroupState(int i, bool state);
+    void doSetState(bool stt);
+    void doSetModifier(bool bCtrl, bool bShift);
+    void doSendKeyToDongle(int condition_index);
+    void doSaveAllToDongle();
+    void setActiveL2W(L2Window* l2w);
 };
 
 #endif // MAINWINDOW_H

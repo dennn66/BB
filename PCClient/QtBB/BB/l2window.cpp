@@ -52,7 +52,7 @@ QImage L2Window::capture(){
     HWND handle = hwnd;
     HDC hdcSrc = GetWindowDC(handle);
     if(hdcSrc == NULL){
-        qDebug("GetDC failed: %d", hwnd);
+        qDebug("GetDC failed: %d", (int) hwnd);
         return image;
     }
 

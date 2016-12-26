@@ -2,7 +2,8 @@
 #include "boredombreaker.h"
 #include "ui_boredombreaker.h"
 
-char* BoredomBreaker::StyleSheet[BARNUM+1] = {
+
+const char* BoredomBreaker::StyleSheet[BARNUM+1] = {
     "QProgressBar::chunk {background: #805300 ;}",
     "QProgressBar::chunk {background: #881D18 ;}",
     "QProgressBar::chunk {background: #03327E ;}",
@@ -12,7 +13,7 @@ char* BoredomBreaker::StyleSheet[BARNUM+1] = {
     "QProgressBar::chunk {background: #7F7F7F ;}"
 };
 
-char* BoredomBreaker::StyleSheetCheckBox[5] = {
+const char* BoredomBreaker::StyleSheetCheckBox[5] = {
     "QCheckBox::indicator  {background: #805300 ;}",  //YELLOW
     "QCheckBox::indicator  {background: #881D18 ;}",  //RED
     "QCheckBox::indicator  {background: #03327E ;}",  //BLUE
@@ -20,7 +21,7 @@ char* BoredomBreaker::StyleSheetCheckBox[5] = {
     "QCheckBox::indicator  {background: #7F7F7F ;}"   //GREY
 };
 
-char* BoredomBreaker::StyleSheetLabel[2] = {
+const char* BoredomBreaker::StyleSheetLabel[2] = {
     "QLabel  {background: #805300 ;}",  //YELLOW
     "QLabel  {background: #7f7f7f ;}"  //GREY
 };
@@ -30,6 +31,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     ui(new Ui::BoredomBreaker)
 {
     ui->setupUi(this);
+    this->setAttribute(Qt::WA_DeleteOnClose);
     ellipsed_time = 0;
     pb[idCP] = ui->barCP;
     pb[idHP] = ui->barHP;
@@ -53,7 +55,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     } else {
         vkModifierCode = s_cond.toInt();
     }
-    if(vkModifierCode <0 || vkModifierCode > 0xFF)  vkModifierCode = VK_LSHIFT;
+    if(vkModifierCode <= 0 || vkModifierCode > 0xFF)  vkModifierCode = VK_LSHIFT;
     v_cond = sett.value("MAIN/ActivationKeyCode", VK_OEM_3);
     s_cond = v_cond.toString();
     if(strlen(s_cond.toStdString().c_str()) < 1){
@@ -61,7 +63,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     } else {
         vkActivationKeyCode = s_cond.toInt();
     }
-    if(vkActivationKeyCode <0 || vkActivationKeyCode > 0xFF)  vkActivationKeyCode = VK_OEM_3;
+    if(vkActivationKeyCode <= 0 || vkActivationKeyCode > 0xFF)  vkActivationKeyCode = VK_OEM_3;
 
 
 
@@ -94,14 +96,15 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     }
     ui->chkbox_widget->setLayout(layout);
 
+
     QGridLayout *layout_2 = new QGridLayout;
     QString key_label = "B";
     QTextStream key_label_stream(&key_label);
 
-    group_enable[0] = 1;
-    for(int i = 1; i<GROUPSNUM; i++){
-        group_enable[i] = 0;
-    }
+    //group_enable[0] = 1;
+    //for(int i = 1; i<GROUPSNUM; i++){
+    //    group_enable[i] = 0;
+    //}
 
     for(int i=0;i<GROUPSNUM;i++)
     {
@@ -111,7 +114,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
         QGridLayout *sell  = new QGridLayout;
         keyenable2[i] = new QCheckBox(key_label.toStdString().c_str());
         sell->addWidget(keyenable2[i],0, 0);
-        keyenable2[i]->setChecked (group_enable[i]);
+        keyenable2[i]->setChecked (1);
         layout_2->addLayout(sell,i, j);
     }
     ui->chkbox_widget_2->setLayout(layout_2);
@@ -138,18 +141,15 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     for(int i = 0; i< GROUPSNUM; i++){
         connect(keyenable2[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
     }
-    dongle_thread = new QThread;
-    dongle = new Dongle();
 
 
-    dongle->moveToThread(dongle_thread);
-    dongle_thread->start();
-
+//    dongle_thread = new QThread;
+    dongle_worker = new DongleWorker();
+//    dongle_worker->moveToThread(dongle_thread);
 
     l2_parser_thread = new QThread;
     l2_parser = new L2parser();
     l2_parser->moveToThread(l2_parser_thread);
-    l2_parser_thread->start();
 
 
     kb = SystemKeyboardReadWrite::instance();
@@ -158,28 +158,54 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
 
     //QObject::connect(dongle, SIGNAL(error(QString)), thread, SLOT(errorString(QString)));
 
-    connect(dongle_thread, SIGNAL(started()), dongle, SLOT(process()));
-    connect(dongle, SIGNAL(finished()), dongle_thread, SLOT(quit()));
-    connect(dongle, SIGNAL(finished()), dongle, SLOT(deleteLater()));
-    connect(dongle_thread, SIGNAL(finished()), dongle_thread, SLOT(deleteLater()));
+    //connect(dongle_thread, SIGNAL(started()), dongle_worker, SLOT(process()));
+    //connect(dongle_worker, SIGNAL(finished()), dongle_thread, SLOT(quit()));
+    //connect(dongle, SIGNAL(finished()), dongle, SLOT(deleteLater()));
+    //connect(dongle_thread, SIGNAL(finished()), dongle_thread, SLOT(deleteLater()));
 
     connect(l2_parser_thread, SIGNAL(started()), l2_parser, SLOT(process()));
     connect(l2_parser, SIGNAL(finished()), l2_parser_thread, SLOT(quit()));
     connect(l2_parser, SIGNAL(finished()), l2_parser, SLOT(deleteLater()));
     connect(l2_parser_thread, SIGNAL(finished()), l2_parser_thread, SLOT(deleteLater()));
 
+    //connect(ui->pbLoadProject, SIGNAL(clicked()), clicker, SLOT(quit()));
+    //connect(ui->pbLoadProject, SIGNAL(clicked()), clicker, SLOT(deleteLater()));
 
     connect(kb, SIGNAL(keyPressed(DWORD )), SLOT(keyGlobalPressed(DWORD)));
     connect(kb, SIGNAL(keyReleased(DWORD)), SLOT(keyGlobalReleased(DWORD)));
 
-    connect(dongle, SIGNAL(showStatus(int, int, int)), this, SLOT(showDongleStatus(int, int, int)));
+    connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), this, SLOT(showDongleStatus(unsigned char, int)));
+
+    connect(this, SIGNAL(setDongleGroupState(int, bool)), dongle_worker, SLOT(setGroupState(int, bool)));
+   // connect(this, SIGNAL(setDongleState(int)), dongle_worker, SLOT(setDongleState(int)));
+    connect(this, SIGNAL(doSendKeyToDongle(int)), dongle_worker, SLOT(doSendKeyToDongle(int)));
+    connect(this, SIGNAL(doSetState(bool)), dongle_worker, SLOT(doSetState(bool)));
+    connect(this, SIGNAL(doSetModifier(bool, bool)), dongle_worker, SLOT(doSetModifier(bool, bool)));
+    connect(this, SIGNAL(doSaveAllToDongle()), dongle_worker, SLOT(doSaveAllToDongle()));
+    connect(this, SIGNAL(setActiveL2W(L2Window*)), dongle_worker, SLOT(setActiveL2W(L2Window*)));
+
+    l2_parser_thread->start();
+    //dongle_thread->start();
+
+
+    clicker = new Clicker;
+    //clicker->dongle = dongle;
+    connect(clicker, SIGNAL(setDongleGroupState(int, bool)), dongle_worker, SLOT(setGroupState(int, bool)));
+    connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), clicker, SLOT(showDongleStatus(unsigned char, int)));
+    connect(clicker, SIGNAL(doSetState(bool)), dongle_worker, SLOT(doSetState(bool)));
+    connect(clicker, SIGNAL(doSetModifier(bool, bool)), dongle_worker, SLOT(doSetModifier(bool, bool)));
+
+
+    clicker->show();
+
+
     enumerateL2();
 
-    qDebug("BoredomBreaker start play");
+    //qDebug("BoredomBreaker start play");
 
-      if(bEnableSound) QSound::play("sounds/on.wav");
+    //  if(bEnableSound) QSound::play("sounds/on.wav");
 
-    qDebug("BoredomBreaker stop play");
+    //qDebug("BoredomBreaker stop play");
 
 }
 
@@ -187,6 +213,9 @@ BoredomBreaker::~BoredomBreaker()
 {
     qDebug("BoredomBreaker::~BoredomBreaker");
     delete ui;
+    //clicker->close();
+    //clicker->deleteLater();
+    delete clicker;
 }
 
 void BoredomBreaker::keyGlobalPressed(DWORD vkCode)
@@ -204,20 +233,22 @@ void BoredomBreaker::keyGlobalReleased(DWORD vkCode)
 
     if(bModifier  == false && bEnableModifier == true) return;
     if(vkCode == vkModifierCode) bModifier = false;
-    if(vkCode == vkActivationKeyCode)  dongle->doSetState(!ui->cbDongle->isChecked());
+    if(vkCode == vkActivationKeyCode)  emit doSetState(!ui->cbDongle->isChecked());
 }
 
 
 void BoredomBreaker::cbDongleClicked(bool checked){
-    qDebug("Checkbox: %d", checked);
-    dongle->doSetState(checked);
+    qDebug("BoredomBreaker::cbDongleClicked(bool checked): %d", checked);
+    //dongle->doSetState(checked);
+    emit doSetState(checked);
 
 }
 
 void BoredomBreaker::cbCtrlShiftClicked(bool checked){
-    qDebug("Checkbox: %d", checked);
+    qDebug("BoredomBreaker::cbCtrlShiftClicked(bool checked: %d", checked);
 
-    dongle->sendCMD_SET_MODIFIER(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
+    //dongle->sendCMD_SET_MODIFIER(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
+    emit doSetModifier(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
 }
 
 void BoredomBreaker::cmbCondSetListTextChanged(const QString &text){
@@ -244,7 +275,8 @@ void BoredomBreaker::cbKeyEnableClicked(bool checked){
         while( (i< 48) && keyenable[i] != cb){i++;}
         if(i<48){
             l2list[index]->getCurrentSettings()->condition[i]->FSet = checked;
-            dongle->doSendKeyToDongle(i);
+            //dongle->doSendKeyToDongle(i);
+            emit doSendKeyToDongle(i);
             //cmbWinListActivated(index);
         }
     }
@@ -263,42 +295,15 @@ void BoredomBreaker::cbKeyEnableBxClicked(bool checked){
     }
 }
 
-void BoredomBreaker::toggleGroup(int group){
-    qDebug("BoredomBreaker::enableGroup(int group): %d", group);
-    if(group_enable[group]){
-        enableGroup(group, false);
-    } else {
-        enableGroup(group, true);
-    }
-}
+
 
 void BoredomBreaker::enableGroup(int group, bool state){
     qDebug("BoredomBreaker::enableGroup(int group): %d", group);
-    group_enable[group] = state;
-    keyenable2[group]->setChecked (group_enable[group]);
-    dongle->setGroupsState(getGroupsBinaryState());
-
+    keyenable2[group]->setChecked (state);
+    emit setDongleGroupState(group, state);
 }
 
 
-unsigned char BoredomBreaker::getGroupsBinaryState(){
-    qDebug("KeyCondition::getGroupState()");
-    unsigned char state = 0;
-    for(int i = 0; i<CONDBNUM; i++){
-        state |= group_enable[i] << (i+2);
-    }
-    state &= 0b00111100;
-    return(state);
-}
-bool BoredomBreaker::getGroupBoolState(int group_num, unsigned char bin_state){
-    qDebug("KeyCondition::getGroupState()");
-    bin_state &= (1 << (group_num+2));
-    if((bin_state & (1 << (group_num+2))) == 0){
-        return(false);
-    } else {
-        return(true);
-    }
-}
 
 bool BoredomBreaker::isValidIndex(int index){
     if((index == -1)||(l2list.isEmpty())||(index >= l2list.size()))return false;
@@ -324,7 +329,8 @@ void BoredomBreaker::pbKeySettingsClicked(){
             if(dlg.exec() == QDialog::Accepted){
                *(l2list[index]->getCurrentSettings()->condition[i]) = cond;
             }
-            dongle->doSendKeyToDongle(i);
+            //dongle->doSendKeyToDongle(i);
+            emit doSendKeyToDongle(i);
         }
     }
 }
@@ -345,6 +351,7 @@ void BoredomBreaker::pbAddClicked(){
 
 void BoredomBreaker::pbLoadProjectClicked(){
     qDebug("BoredomBreaker::pbLoadProjectClicked");
+    clicker->show();
     int index = ui->cmbWinList->currentIndex();
     if(!isValidIndex(index))return;
 
@@ -414,7 +421,8 @@ void BoredomBreaker::pbToDongleClicked(){
     qDebug("BoredomBreaker::pbToDongleClicked");
     int index = ui->cmbWinList->currentIndex();
     if(!isValidIndex(index))return;
-    dongle->doSaveAllToDongle();
+    //dongle->doSaveAllToDongle();
+    emit doSaveAllToDongle();
 }
 
 void BoredomBreaker::pbEnumerateClicked(){
@@ -470,31 +478,28 @@ void BoredomBreaker::cmbWinListActivated(int index){
     }
 
     cmbCondSetListActivated(l2list[index]->activeCondSet);
-    dongle->setActiveL2W(l2list[index]);
+    //dongle->setActiveL2W(l2list[index]);
+    emit setActiveL2W(l2list[index]);
     l2_parser->setActiveL2W(l2list[index]);
 }
 
-void BoredomBreaker::showDongleStatus(int state, int g_state, int updatetime)
+void BoredomBreaker::showDongleStatus(unsigned char d_stt, int updatetime)
 {
     //qDebug("BoredomBreaker::showDongleStatus");
-    if(g_state == GROUPS_DISCONNECTED) {
-        for(int i=0;i<GROUPSNUM;i++)
-        {
-            keyenable2[i]->setChecked(group_enable[i]);
-            keyenable2[i]->setEnabled (false);
-        }
-    } else {
-        for(int i=0;i<GROUPSNUM;i++)
-        {
-            keyenable2[i]->setChecked(getGroupBoolState(i, g_state));
-            keyenable2[i]->setEnabled (true);
-        }
+    for(int i=0;i<GROUPSNUM;i++)
+    {
+        keyenable2[i]->setChecked((d_stt & (1<<(i+GROUP_0))) > 0);
+        keyenable2[i]->setEnabled (true);
     }
 
+    ui->cbCtrl->setChecked((d_stt & (1 << DEVICE_CTRL)) > 0);
+    ui->cbShift->setChecked((d_stt & (1 << DEVICE_SHIFT)) > 0);
+
+    bool state = (d_stt & (1<<DEVICE_STATUS)) > 0;
     switch(state){
     case STATE_OFF:
         if( ui->cbDongle->isChecked() == true){
-            if(bEnableSound) QSound::play("sounds/off.wav");
+            //if(bEnableSound) QSound::play("sounds/off.wav");
            //  QSound::play("sounds/on.wav");
         }
         ui->cbDongle->setChecked(false);
@@ -504,7 +509,7 @@ void BoredomBreaker::showDongleStatus(int state, int g_state, int updatetime)
     case STATE_ON:
         if( ui->cbDongle->isChecked() == false){
             //QSound::play("sounds/off.wav");
-             if(bEnableSound) QSound::play("sounds/on.wav");
+             //if(bEnableSound) QSound::play("sounds/on.wav");
         }
         ui->cbDongle->setChecked(true);
         ui->cbDongle->setEnabled(true);
@@ -609,9 +614,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
         GetWindowTextA(hwnd,szTextWin,sizeof(szTextWin));
         if(strstr(szTextWin, "Lineage") != 0){
             qDebug(" - Txt: %s", szTextWin);
-            qDebug(" - TID: %d", GetWindowThreadProcessId(hwnd,&dwPID));
-            qDebug(" - PID: %d", dwPID);
-            qDebug("  HWND: %d", hwnd);
+            qDebug(" - TID: %d", (int) GetWindowThreadProcessId(hwnd,&dwPID));
+            qDebug(" - PID: %d", (int) dwPID);
+            qDebug("  HWND: %d", (int) hwnd);
              //Capture(hwnd);
             BoredomBreaker * bb = reinterpret_cast<BoredomBreaker*>(lParam);
             bb->addL2Window(hwnd);

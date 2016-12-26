@@ -55,7 +55,6 @@ static uint8_t  newKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 
 static uint8_t deviceState = 0;		/* DE device on/off state */
 
-static uint8_t Modifier = 0;	
 static uint8_t DebugFlag = 0;	
 
 
@@ -177,7 +176,6 @@ int main(void)
 
 	SetupHardware();
 
-	Modifier =	0;
 	//ReadConfig();
 	_delay_us(1000);
 	prevButton1State =  Buttons_GetStatus()& BUTTONS_BUTTON1;
@@ -450,6 +448,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		// Create keyboard report 
 		if (expectKeyboardReport != 0) {	
 			if (get_deviceState() > 0) {
+				unsigned char Modifier = (deviceState & ((1<<DEVICE_CTRL) | (1<<DEVICE_SHIFT))) >> DEVICE_CTRL;
 				KeyboardReport->Modifier = newKeyboardReport->Modifier | Modifier;
 			} else {
 				KeyboardReport->Modifier = 0;			
@@ -503,9 +502,9 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		// 3 - Group 1 status
 		// 4 - Group 2 status
 		// 5 - Group 3 status
-		// 6 - NC
-		// 7 - NC
-		RawReport[0] = deviceState& 0b00111111;
+		// 6 - Ctrl status
+		// 7 - Shift status
+		RawReport[0] = deviceState;
 
 		*ReportSize = 1;
 		return true;
@@ -575,9 +574,6 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 				case CMD_DELETE_ALL:
 					List_Delete_All();
 					break;
-				case CMD_SET_MODIFIER:
-					Modifier = RawReport[2];
-					break;
 				case CMD_SET_HPCPMP:
 					// mobHP playerHP playerCP playerMP
 					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
@@ -634,9 +630,9 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 		// 3 - Group 1 status
 		// 4 - Group 2 status
 		// 5 - Group 3 status
-		// 6 - NC
-		// 7 - NC
-			deviceState =	RawReport[1] & 0b00111111;
+		// 6 - Ctrl state
+		// 7 - Shift state
+			deviceState =	RawReport[1];
 			expectMouseReport = 0;		
 			expectKeyboardReport = 0;
 		} else if(Service == SERVICE_KEYBOARD){					

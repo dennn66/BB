@@ -62,10 +62,10 @@ public:
     bool shift;
 
 
-    static char* conditionf_tag[CONDFNUM];
-    static char* conditioni_tag[CONDINUM];
-    static char* conditionb_tag[CONDBNUM];
-    static char* conditionb_name[CONDBNUM];
+    static const char* conditionf_tag[CONDFNUM];
+    static const char* conditioni_tag[CONDINUM];
+    static const char* conditionb_tag[CONDBNUM];
+    static const char* conditionb_name[CONDBNUM];
 
 };
 

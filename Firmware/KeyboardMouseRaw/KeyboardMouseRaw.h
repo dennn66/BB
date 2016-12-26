@@ -79,6 +79,27 @@
 		#define DEVICE_STATUS_STATE      0
 		#define DEVICE_STATUS_ACTIVE     1
 		
+				/* Return status of device */
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - Group 0 status
+		// 3 - Group 1 status
+		// 4 - Group 2 status
+		// 5 - Group 3 status
+		// 6 - Ctrl status
+		// 7 - Shift status
+		#define DEVICE_STATUS	0
+		#define DEVICE_MODE		1
+		#define GROUP_0			2
+		#define GROUP_1			3
+		#define GROUP_2			4
+		#define GROUP_3			5
+		#define DEVICE_CTRL		6
+		#define DEVICE_SHIFT	7
+		#define DEVICE_MASK      0b11111111
+
+		
+		
 #define USB_MOUSE_BTN_MASK      0x1F
 #define USB_MOUSE_BTN_LEFT      0
 #define USB_MOUSE_BTN_RIGHT     1
@@ -133,7 +154,7 @@
 				CMD_ADD_NODE = 2, /** Add button to active config */
 				CMD_DELETE_NODE = 3, /** Delete button from active config */
 				CMD_DELETE_ALL = 4, /** Delete all button from active config  */
-				CMD_SET_MODIFIER = 5, /** set active config Modifier  */
+				CMD_UNUSED = 5, /** unused  */
 				CMD_SET_HPCPMP = 6, /** set param values  */
 				CMD_ADD_NODE_CONDITION = 7, /** set param values  */
 				CMD_SET_TARGET_STATE = 8, /** set star state and type of target  */

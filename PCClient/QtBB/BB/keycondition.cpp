@@ -1,12 +1,12 @@
 #include "keycondition.h"
 
-char* KeyCondition::conditionf_tag[CONDFNUM] = {
+const char* KeyCondition::conditionf_tag[CONDFNUM] = {
     "$FCoolDownSet",
     "$FPauseSet",
     "$FConditionIdleSet"
 };
 
-char* KeyCondition::conditioni_tag[CONDINUM] = {
+const char* KeyCondition::conditioni_tag[CONDINUM] = {
     "$FCPMinSet",
     "$FHPMinSet",
     "$FMPMinSet",
@@ -21,7 +21,7 @@ char* KeyCondition::conditioni_tag[CONDINUM] = {
     "$FMobMPMaxSet"
 };
 
-char* KeyCondition::conditionb_tag[CONDBNUM] = {
+const char* KeyCondition::conditionb_tag[CONDBNUM] = {
     "$FGroupEnable0",
     "$FGroupEnable1",
     "$FGroupEnable2",
@@ -34,7 +34,7 @@ char* KeyCondition::conditionb_tag[CONDBNUM] = {
     "$FNoTarget"
 };
 
-char* KeyCondition::conditionb_name[CONDBNUM] = {
+const char* KeyCondition::conditionb_name[CONDBNUM] = {
     "B0",
     "B1",
     "B2",

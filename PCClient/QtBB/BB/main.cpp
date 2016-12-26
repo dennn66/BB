@@ -1,4 +1,5 @@
 #include "boredombreaker.h"
+#include "clicker.h"
 #include "dongle.h"
 #include <QApplication>
 #include <QTextCodec>
@@ -58,8 +59,8 @@ int main(int argc, char *argv[])
 
     BoredomBreaker* bbwin = new BoredomBreaker;
 
-
     bbwin->show();
+    //QObject::connect(bbwin, SIGNAL(closeEvent()), &app, SLOT(quit()));
 
     int mainReturn = app.exec();
 
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg){
 
+    Q_UNUSED(context);
     //std::cout << msgType[type] << msg << std::endl;
     if(logStream && logStream->device())
     {
