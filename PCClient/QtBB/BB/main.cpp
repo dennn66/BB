@@ -55,7 +55,11 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
     #endif
 
-    installLog();
+    //LOAD CONFIG BB.ini
+    QSettings sett("bb.ini", QSettings::IniFormat);
+    bool bEnableDebug = sett.value("MAIN/EnableDebug", 1).toBool();
+
+    if(bEnableDebug) installLog();
 
     BoredomBreaker* bbwin = new BoredomBreaker;
 
@@ -64,7 +68,7 @@ int main(int argc, char *argv[])
 
     int mainReturn = app.exec();
 
-    finishLog();
+    if(bEnableDebug) finishLog();
     return mainReturn;
 }
 

@@ -57,6 +57,7 @@ private:
 //    bool group_enable[CONDBNUM];
     QProgressBar *pb[BARNUM];
     SystemKeyboardReadWrite *kb;
+
     bool bModifier;
     bool bEnableSound;
     bool bEnableModifier;
@@ -94,6 +95,7 @@ public slots:
     void cmbCondSetListTextChanged(const QString &text);
     void keyGlobalPressed(DWORD vkCode);
     void keyGlobalReleased(DWORD vkCode);
+    void doActivateL2();
 
 signals:
     //void setDongleState(int stt);

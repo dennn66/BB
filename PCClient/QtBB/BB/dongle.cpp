@@ -16,21 +16,15 @@ Dongle::Dongle()
     current_device_state = 0b00000000;
 
     for(int i = 0; i < KEYNUM; i++) key_transfer_state[i] = false;
-    connect();
+    //connect();
 }
 
-void Dongle::process()
+void Dongle::spin()
 {
-    qDebug("Start dongle checker");
-
-    while(1){
-        QTime updateTime;
-        updateTime.start();
-        int delta;
-
-        if(state == STATE_DISCONNECTED){
-            connect();
-        }
+    qDebug("Spin dongle");
+    if(state == STATE_DISCONNECTED){
+        connect();
+    } else {
 
         if(currentl2w != NULL){
             //currentl2w->check();
@@ -86,6 +80,26 @@ void Dongle::process()
                 sendCMD_SET_TARGET_STATE();
             }
         }
+
+    }
+}
+
+void Dongle::process()
+{
+    qDebug("Start dongle checker");
+
+    while(1){
+        QTime updateTime;
+        updateTime.start();
+        int delta;
+
+        try {
+            spin();
+        } catch(...) {
+            qDebug("Spin dongle failed");
+            state = STATE_DISCONNECTED;
+        }
+
         emit showStatus(current_device_state, updateTime.elapsed());
         delta = 100 - updateTime.elapsed();
         delta = (delta > 0)?delta:0;
@@ -117,6 +131,7 @@ void Dongle::recieve_status() {
         res =  hid_get_input_report(handle, buf, sizeof(buf));
     } catch(...) {
         res = -1;
+        state = STATE_DISCONNECTED;
     }
 
     if (res == -1)
@@ -151,6 +166,7 @@ int Dongle::connect()
         handle = hid_open(0x03eb, 0x204d, NULL);
     } catch(...) {
         qDebug("unable to open device exeption\n");
+        state = STATE_DISCONNECTED;
     }
     if (!handle) {
         qDebug("unable to open device\n");
@@ -165,6 +181,7 @@ int Dongle::connect()
         hid_set_nonblocking(handle, 1);
     } catch(...) {
        qDebug("unable to set hid_set_nonblocking\n");;
+       state = STATE_DISCONNECTED;
     }
     state = STATE_OFF;
     activity = DO_WRITEALLTODONGLE;
@@ -180,6 +197,7 @@ int Dongle::disconnect()
     } catch(...) {
         ;;
         qDebug("hid_close failed\n");
+        state = STATE_DISCONNECTED;
 
     }
 
@@ -190,6 +208,7 @@ int Dongle::disconnect()
     } catch(...) {
         ;;
         qDebug("hid_exit failed\n");
+        state = STATE_DISCONNECTED;
 
     }
 
@@ -206,9 +225,7 @@ int Dongle::send_command(int device, int command, unsigned char* cmd_arg)
     qDebug("Dongle::send_command(int device, int command, unsigned char* cmd_arg)command: %d", command);
     int res;
     unsigned char buf[HID_REPORT_SIZE];
-    if(state == STATE_DISCONNECTED){
-        connect();
-    }
+
     if(state != STATE_DISCONNECTED && state != STATE_TRANSMIT_CONF){
         // Set up the command buffer.
         memset(buf,0,sizeof(buf));

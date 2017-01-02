@@ -19,11 +19,15 @@ public:
 
 public slots:
    void process();
+   void doActivateL2();
+
 
 signals:
    void finished();
    void error(QString err);
    void showParserStatus(int updatetime);
+   void isL2Active(bool isActive, int right, int top);
+
 
 };
 

@@ -23,7 +23,7 @@ L2Window::L2Window(HWND winhwnd)
     mobright_c.load("patterns\\mob_right_close.bmp");
     star.load("patterns\\star.bmp");
 
-    findBars();
+    resetBars();
 
     bar[idCP].setColors(CP_COLOR, BK_CP_COLOR);
     bar[idHP].setColors(HP_COLOR, BK_HP_COLOR);
@@ -49,15 +49,38 @@ QImage L2Window::capture(){
     QImage image;
     qDebug("L2Window::capture");
 
-    HWND handle = hwnd;
-    HDC hdcSrc = GetWindowDC(handle);
+    if(IsIconic(hwnd) != 0){
+        qDebug("Window is iconic: %d", (int) hwnd);
+        windowtopright.setX(0);
+        windowtopright.setY(0);
+        isActiveWindow = false;
+        return image;
+    }
+
+
+    RECT windowRect;
+    GetWindowRect(hwnd, &windowRect);
+
+    HWND foreground = GetForegroundWindow();
+    if(foreground == hwnd) {
+        qDebug("Window is foreground: %d", (int) hwnd);
+        windowtopright.setX(windowRect.right);
+        windowtopright.setY(windowRect.top);
+        isActiveWindow = true;
+    } else {
+        qDebug("Window is background: %d", (int) hwnd);
+        windowtopright.setX(windowRect.right);
+        windowtopright.setY(windowRect.top);
+        isActiveWindow = false;
+    }
+
+    HDC hdcSrc = GetWindowDC(hwnd);
     if(hdcSrc == NULL){
         qDebug("GetDC failed: %d", (int) hwnd);
         return image;
     }
 
-    RECT windowRect;
-    GetWindowRect(handle, &windowRect);
+
 
     if(     (windowRect.left   !=    -32000) &&
             (windowRect.top    !=    -32000) &&
@@ -76,13 +99,15 @@ QImage L2Window::capture(){
         BitBlt(hdcDest, 0, 0, width, height, hdcSrc, 0, 0, SRCCOPY);
         SelectObject(hdcDest, hOld);
         DeleteDC(hdcDest);
-        ReleaseDC(handle, hdcSrc);
+        ReleaseDC(hwnd, hdcSrc);
         QPixmap pixelMap = QtWin::fromHBITMAP(hBitmap);
         DeleteObject(hBitmap);
         //pixelMap.load("C:\\workspace\\shots\\Lineage - self - star.bmp");
         //pixelMap.load("C:\\workspace\\shots\\Vred.bmp");
        // pixelMap.save("Lineage.png");
         image = pixelMap.toImage();
+    } else {
+        ReleaseDC(hwnd, hdcSrc);
     }
     return image;
 }
@@ -270,11 +295,11 @@ int L2Window::check(){
 
     if(image.isNull()) {
         qDebug("image.isNull()");
-        findBars();
+        resetBars();
         return status;
     }
     if(status == L2_OFF || image_width != image.width() || image_height != image.height()){
-        findBars();
+        resetBars();
         image_width = image.width();
         image_height = image.height();
     }
@@ -433,7 +458,7 @@ int L2Window::check(){
 
 int L2Window::getStatus(){return status;}
 
-void L2Window::findBars(){
+void L2Window::resetBars(){
     for(int i = idCP; i < BARNUM; i++ ){
         bar[i].setStatus(false);
     }

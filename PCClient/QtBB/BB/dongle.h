@@ -121,6 +121,7 @@ private:
     int activity;
     L2Window* currentl2w;
     bool key_transfer_state[KEYNUM];
+    void spin();
 
     int connect();
     int disconnect();

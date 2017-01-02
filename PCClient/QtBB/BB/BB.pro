@@ -27,7 +27,8 @@ SOURCES += main.cpp \
     systemkeyboardreadwrite.cpp \
     l2parser.cpp \
     clicker.cpp \
-    dongleworker.cpp
+    dongleworker.cpp \
+    systemmousehook.cpp
 
 HEADERS  += \
     boredombreaker.h \
@@ -41,7 +42,8 @@ HEADERS  += \
     systemkeyboardreadwrite.h \
     l2parser.h \
     clicker.h \
-    dongleworker.h
+    dongleworker.h \
+    systemmousehook.h
 
 FORMS    += \
     boredombreaker.ui \

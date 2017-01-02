@@ -46,8 +46,9 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
 
     default_file_name = sett.value("MAIN/DefaultProject", "default.bbproj").toString();
 
-    bEnableSound = sett.value("MAIN/bEnableSound", 1).toBool();
+    bEnableSound = sett.value("MAIN/EnableSound", 1).toBool();
     bEnableModifier = sett.value("MAIN/EnableModifier", 1).toBool();
+    bool bEnableHotKey = sett.value("MAIN/EnableHotKey", 0).toBool();
     QVariant v_cond = sett.value("MAIN/ModifierCode", VK_LSHIFT);
     QString s_cond = v_cond.toString();
     if(strlen(s_cond.toStdString().c_str()) < 1){
@@ -151,10 +152,12 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     l2_parser = new L2parser();
     l2_parser->moveToThread(l2_parser_thread);
 
-
-    kb = SystemKeyboardReadWrite::instance();
-    kb->setConnected(true);
-
+    if(bEnableHotKey){
+        kb = SystemKeyboardReadWrite::instance();
+        kb->setConnected(true);
+        connect(kb, SIGNAL(keyPressed(DWORD )), SLOT(keyGlobalPressed(DWORD)));
+        connect(kb, SIGNAL(keyReleased(DWORD)), SLOT(keyGlobalReleased(DWORD)));
+    }
 
     //QObject::connect(dongle, SIGNAL(error(QString)), thread, SLOT(errorString(QString)));
 
@@ -171,8 +174,6 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     //connect(ui->pbLoadProject, SIGNAL(clicked()), clicker, SLOT(quit()));
     //connect(ui->pbLoadProject, SIGNAL(clicked()), clicker, SLOT(deleteLater()));
 
-    connect(kb, SIGNAL(keyPressed(DWORD )), SLOT(keyGlobalPressed(DWORD)));
-    connect(kb, SIGNAL(keyReleased(DWORD)), SLOT(keyGlobalReleased(DWORD)));
 
     connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), this, SLOT(showDongleStatus(unsigned char, int)));
 
@@ -194,20 +195,24 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), clicker, SLOT(showDongleStatus(unsigned char, int)));
     connect(clicker, SIGNAL(doSetState(bool)), dongle_worker, SLOT(doSetState(bool)));
     connect(clicker, SIGNAL(doSetModifier(bool, bool)), dongle_worker, SLOT(doSetModifier(bool, bool)));
+    connect(clicker, SIGNAL(doActivateL2()), l2_parser, SLOT(doActivateL2()));
+    connect(clicker, SIGNAL(doActivateL2()), this, SLOT(doActivateL2()));
+    connect(l2_parser, SIGNAL(isL2Active(bool, int, int)), clicker, SLOT(isL2Active(bool, int, int)));
 
-
-    clicker->show();
+    //clicker->show();
 
 
     enumerateL2();
 
-    //qDebug("BoredomBreaker start play");
+    qDebug("BoredomBreaker start play");
 
-    //  if(bEnableSound) QSound::play("sounds/on.wav");
+    if(bEnableSound) QSound::play("sounds/on.wav");
 
-    //qDebug("BoredomBreaker stop play");
+    qDebug("BoredomBreaker stop play");
+
 
 }
+
 
 BoredomBreaker::~BoredomBreaker()
 {
@@ -216,6 +221,16 @@ BoredomBreaker::~BoredomBreaker()
     //clicker->close();
     //clicker->deleteLater();
     delete clicker;
+}
+
+void BoredomBreaker::doActivateL2()
+{
+    qDebug("BoredomBreaker::doActivateL2W()");
+
+    int index = ui->cmbWinList->currentIndex();
+    if(!isValidIndex(index))return;
+    //SetActiveWindow(l2list[index]->getHWND());
+
 }
 
 void BoredomBreaker::keyGlobalPressed(DWORD vkCode)
@@ -434,7 +449,7 @@ void BoredomBreaker::pbFindBarsClicked(){
     qDebug("BoredomBreaker::pbFindBarsClicked()");
     int index = ui->cmbWinList->currentIndex();
     if(!isValidIndex(index))return;
-    l2list[index]->findBars();
+    l2list[index]->resetBars();
 }
 
 void BoredomBreaker::cmbCondSetListActivated(int index){

@@ -38,6 +38,8 @@ public:
     HWND getHWND();
     QString project_file_name;
     QColor c2; //token
+    QPoint windowtopright;
+    bool isActiveWindow;
 
     int getStatus();
     int LoadProject(QString file_name);
@@ -49,7 +51,7 @@ public:
     int check();
     QString getConditionLabel(int index);
     bool getConditionState(int index);
-    void findBars();
+    void resetBars();
     bool isValidIndex(int index);
     bool activateSettings(int index);
     KeyConditionsSet* getCurrentSettings();
@@ -81,6 +83,7 @@ private:
     QPoint mobtopright;
     QImage star;
     QPoint startopleft;
+
     QPoint findPattern(QImage source, QPoint topleft, QPoint bottomright, QImage pattern, int delta);
 
     //static char* DefaultKeyDB[KEYNUM];
