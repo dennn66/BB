@@ -49,12 +49,16 @@ public:
     int AddConfig(QString file_name);
     int getXP(int bar);
     int check();
+    QImage* getTool(int n);
     QString getConditionLabel(int index);
     bool getConditionState(int index);
     void resetBars();
     bool isValidIndex(int index);
     bool activateSettings(int index);
     KeyConditionsSet* getCurrentSettings();
+    bool isSkillRdy(int num){return skillrdy[num];}
+    bool getConditionSkill(int index){return getCurrentSettings()->condition[index]->conditionb[idCheckSkillTimeout];}
+
     //KeyCondition* condition[KEYNUM];
 
     int activeCondSet;
@@ -69,20 +73,32 @@ private:
     //QString nic;
     QIcon* L2icon;
     bool bStar;
+    bool bEnableToolbar;
     int image_width;
     int image_height;
+    bool skillrdy[KEYNUM];
+
     QImage mainleft;
     QImage mainright;
     QPoint maintopleft;
     QPoint maintopright;
+
     QImage mobleft_o;
     QImage mobright_o;
     QImage mobleft_c;
     QImage mobright_c;
     QPoint mobtopleft;
     QPoint mobtopright;
+    int mobdetectcounter;
+
     QImage star;
     QPoint startopleft;
+    int stardetectcounter;
+
+    QImage toolbarleft;
+    QPoint toolbartopleft;
+    QImage tool[KEYNUM];
+    int tooldetectcounter;
 
     QPoint findPattern(QImage source, QPoint topleft, QPoint bottomright, QImage pattern, int delta);
 

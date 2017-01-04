@@ -16,6 +16,8 @@
 #define idMobHP 4
 #define idMobMP 5
 #define idTargetType 6 //Only for message to dongle
+#define idCheckSkillType 8 //Only for message to dongle
+
 #define BARNUM 6
 
 #define CP_COLOR qRgb(136, 90, 0) //$CP_COLOR = 0x805300,+(133,100,32)
@@ -50,6 +52,7 @@ public:
     int getEnd();
     bool findXPBar(QImage image, RECT targetRect);
     bool checkXPBar(QImage image);
+    int checkXPBarPartial(QImage image, int begin, int end);
     void setColors(QRgb color, QRgb bk_color);
     void setbarID(int id);
     void setStatus(bool stt);

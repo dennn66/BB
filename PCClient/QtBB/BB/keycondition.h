@@ -35,10 +35,10 @@
 #define idTargetChar      7
 #define idTargetMob       8
 #define idNoTarget        9
+#define idCheckSkillTimeout      10
 
+#define CONDBNUM 11
 
-
-#define CONDBNUM 10
 #define GROUPSNUM 4
 #define TARGETTYPENUM 4
 

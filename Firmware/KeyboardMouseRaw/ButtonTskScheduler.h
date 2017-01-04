@@ -38,6 +38,10 @@
 				mobMP = 5, /** Player MP */
 				targetType = 6, /** Target Type */
 				starState = 7, /** Star State */
+				CheckSkillType = 8, /** Check Skill Rdy **/
+				CheckSkillType2 = 9, /** Check Skill Rdy **/
+				CheckSkillType3 = 10, /** Check Skill Rdy **/
+				CheckSkillType4 = 11 /** Check Skill Rdy **/
 		};
 
 	/* Type Defines: */
@@ -84,7 +88,7 @@
 	//void set_spam_buttons_mode(uint8_t mode); 
 	void host_timeout_task(uint16_t time_delta);
 	void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp, uint8_t vp, uint8_t mobmp);
-	void set_TargetState(uint8_t targettype, uint8_t starstate);
+	void set_TargetState(uint8_t targettype, uint8_t starstate, uint8_t skillstate, uint8_t skillstate2, uint8_t skillstate3, uint8_t skillstate4);
 
 
 #endif

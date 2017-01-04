@@ -22,6 +22,7 @@ public slots:
     void setGroupState(int i, bool state);
     void doSetState(bool stt);
     void doSetModifier(bool bCtrl, bool bShift);
+    void doSetMode(bool bMode);
     void doSendKeyToDongle(int condition_index);
     void doSaveAllToDongle();
     void setActiveL2W(L2Window* l2w);

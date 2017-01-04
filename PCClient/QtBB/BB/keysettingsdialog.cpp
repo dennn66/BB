@@ -2,7 +2,7 @@
 #include "ui_keysettingsdialog.h"
 #include "dongle.h"
 
-KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
+KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::KeySettingsDialog)
 {
@@ -39,7 +39,7 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
     connect(ui->cbKeyMnemonic, SIGNAL(activated(int)), SLOT(cbKeyMnemonicActivated(int)));
     connect(ui->cbCtrl, SIGNAL(clicked(bool)), SLOT(cbCtrlClicked(bool)));
     connect(ui->cbShift, SIGNAL(clicked(bool)), SLOT(cbShiftClicked(bool)));
-
+    if(!tool->isNull())    ui->tool_label->setPixmap(QPixmap::fromImage(*tool));
 
     //ui->cbPermanent->setChecked(condition->permanent);
     ui->cbCtrl->setChecked(condition->ctrl);
@@ -84,8 +84,12 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QWidget *parent) :
     ui->chkbox_widget_2->setLayout(layout_2);
     controlb[idCheckStar] = ui->cbCheckStar;
     controlb[idCheckStar]->setChecked (condition->conditionb[idCheckStar]);
+    controlb[idCheckSkillTimeout] = ui->cbCheckSkill;
+    controlb[idCheckSkillTimeout]->setChecked (condition->conditionb[idCheckSkillTimeout]);
     controlb[idStarState] = ui->cbStarState;
     controlb[idStarState]->setChecked (condition->conditionb[idStarState]);
+
+
 
     QGridLayout *layout_3 = new QGridLayout;
     for(int i=0;i<2;i++)

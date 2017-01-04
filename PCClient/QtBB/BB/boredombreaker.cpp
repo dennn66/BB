@@ -176,6 +176,7 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
 
 
     connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), this, SLOT(showDongleStatus(unsigned char, int)));
+    connect(l2_parser, SIGNAL(showParserStatus(int)), this, SLOT(showParserStatus(int)));
 
     connect(this, SIGNAL(setDongleGroupState(int, bool)), dongle_worker, SLOT(setGroupState(int, bool)));
    // connect(this, SIGNAL(setDongleState(int)), dongle_worker, SLOT(setDongleState(int)));
@@ -340,7 +341,7 @@ void BoredomBreaker::pbKeySettingsClicked(){
             KeyCondition cond(".");
             cond = *(l2list[index]->getCurrentSettings()->condition[i]);
 
-            KeySettingsDialog dlg(&cond);
+            KeySettingsDialog dlg(&cond, l2list[index]->getTool(i));
             if(dlg.exec() == QDialog::Accepted){
                *(l2list[index]->getCurrentSettings()->condition[i]) = cond;
             }
@@ -501,6 +502,7 @@ void BoredomBreaker::cmbWinListActivated(int index){
 void BoredomBreaker::showDongleStatus(unsigned char d_stt, int updatetime)
 {
     //qDebug("BoredomBreaker::showDongleStatus");
+    Q_UNUSED(updatetime);
     for(int i=0;i<GROUPSNUM;i++)
     {
         keyenable2[i]->setChecked((d_stt & (1<<(i+GROUP_0))) > 0);
@@ -537,15 +539,11 @@ void BoredomBreaker::showDongleStatus(unsigned char d_stt, int updatetime)
         break;
     }
 
-    ellipsed_time=((ellipsed_time*5)+updatetime)/6;
-    QString label;
-    QTextStream(&label) << ellipsed_time << " ms";
-    ui->lb_ellipsed_time->setText(label);
 
 
     int index = ui->cmbWinList->currentIndex();
     if(!isValidIndex(index))return;
-    label = "";
+    QString label = "";
 
     switch(l2list[index]->targettype){
         case  TARGETMEORPET:
@@ -593,6 +591,34 @@ void BoredomBreaker::showDongleStatus(unsigned char d_stt, int updatetime)
 //    ui->lbStar->set   ///setPixmap(*l2list[index]->getIcon()->pixmap(ui->lbStar));
     ui->cmbWinList->setItemIcon(index, *l2list[index]->getIcon());
     ui->cmbWinList->setItemText(index, l2list[index]->getTitle());
+}
+
+
+void BoredomBreaker::showParserStatus(int updatetime){
+    qDebug("BoredomBreaker::showParserStatus(int updatetime) %d", updatetime);
+    ellipsed_time=((ellipsed_time*5)+updatetime)/6;
+    QString label;
+    QTextStream(&label) << ellipsed_time << " ms";
+    ui->lb_ellipsed_time->setText(label);
+
+    int index = ui->cmbWinList->currentIndex();
+    if(!isValidIndex(index))return;
+
+    for(int i = 0 ; i < KEYNUM; i++){
+        if(l2list[index]->getConditionState(i)){
+            if(l2list[index]->getConditionSkill(i)) {
+                if(l2list[index]->isSkillRdy(i)) {
+                    keyenable[i]->setStyleSheet(StyleSheetCheckBox[3]); // GREEN
+                } else {
+                    keyenable[i]->setStyleSheet(StyleSheetCheckBox[0]); // YELLOW
+                }
+            } else {
+                keyenable[i]->setStyleSheet(StyleSheetCheckBox[3]); // GREEN
+            }
+        } else {
+           keyenable[i]->setStyleSheet(StyleSheetCheckBox[1]); // RED
+        }
+    }
 }
 
 

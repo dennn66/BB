@@ -63,6 +63,12 @@ void DongleWorker::doSetModifier(bool bCtrl, bool bShift){
     dongle->setDeviceState((dongle->getDeviceState() & (~((1 << DEVICE_CTRL) | (1 << DEVICE_SHIFT)))) | state);
 }
 
+void DongleWorker::doSetMode(bool bMode){
+    qDebug("DongleWorker::doSetMode(bool bMode): %d", bMode);
+    unsigned char state = (bMode)?(1 << DEVICE_MODE):0;
+    dongle->setDeviceState((dongle->getDeviceState() & (~(1 << DEVICE_MODE))) | state);
+}
+
 void DongleWorker::doSendKeyToDongle(int condition_index){
     qDebug("DongleWorker::doSendKeyToDongle(int condition_index)");
     dongle->doSendKeyToDongle(condition_index);

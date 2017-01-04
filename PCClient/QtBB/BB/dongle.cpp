@@ -325,11 +325,30 @@ void Dongle::sendCMD_SET_STATE() {
 void Dongle::sendCMD_SET_TARGET_STATE(){
     unsigned char hpbuf[HID_REPORT_SIZE-3];
     qDebug("Dongle::sendCMD_SET_TARGET_STATE");
-    memset(hpbuf,0,sizeof(hpbuf));
+    //memset(hpbuf,0,sizeof(hpbuf));
     hpbuf[0] = getTargetType();
     hpbuf[1] = getStarState();
-    qDebug("TargetType: %d, StarState: %d", hpbuf[0], hpbuf[1]);
+    hpbuf[2] = 0;
+    hpbuf[3] = 0;
+    hpbuf[4] = 0;
+    hpbuf[5] = 0;
+    for(int i = 0; i < (HID_REPORT_SIZE-5)*8; i++){  //32 keys
 
+        if(currentl2w->getConditionState(i)){
+            if(currentl2w->getConditionSkill(i)) {
+                if(currentl2w->isSkillRdy(i)) {
+                    int buf_byte = i >> 3;
+                    int buf_bit = i - (buf_byte << 3);
+                    unsigned char t = hpbuf[2+buf_byte] | ((unsigned char)(1 << buf_bit));
+                    hpbuf[2+buf_byte] =   t;
+                    qDebug("Skill  %d = %d * 8 + %d = %d", i, buf_byte, buf_bit, hpbuf[2+buf_byte]);
+                }
+            }
+        }
+        //qDebug("hpbuf[2] %d, i=%d", hpbuf[2+i]);
+
+    }
+    qDebug("TargetType: %d, StarState: %d Skill State %d %d %d %d", hpbuf[0], hpbuf[1], hpbuf[2], hpbuf[3], hpbuf[4], hpbuf[5]);
     send_command(SERVICE_CONFIG, CMD_SET_TARGET_STATE, hpbuf);
 }
 
@@ -409,6 +428,9 @@ void Dongle::sendCMD_ADD_NODE_CONDITION(QString Key, unsigned char Type, unsigne
     case idTargetType:
         hpbuf[1] = 6; //
         break;
+    case idCheckSkillType:
+        hpbuf[1] = 8; //
+        break;
     default:
         hpbuf[1] = 7; //
         break;
@@ -461,7 +483,8 @@ void Dongle::sendKeyToDongle(int condition_index){
                      currentl2w->getCurrentSettings()->condition[condition_index]->conditionf[idCondition],
                      currentl2w->getCurrentSettings()->condition[condition_index]->getGroupsBinaryState(),
                     currentl2w->getCurrentSettings()->condition[condition_index]->ctrl,
-                    currentl2w->getCurrentSettings()->condition[condition_index]->shift);
+                    currentl2w->getCurrentSettings()->condition[condition_index]->shift
+                    );
 
         for(int j = idCP; j < BARNUM; j++ )
         {
@@ -488,6 +511,16 @@ void Dongle::sendKeyToDongle(int condition_index){
                       );
         }
 
+        if((currentl2w->getCurrentSettings()->condition[condition_index]->conditionb[idCheckSkillTimeout]) && condition_index < 32)// Skill Condition (first 32)
+        {
+            sendCMD_ADD_NODE_CONDITION(
+                            currentl2w->getCurrentSettings()->condition[condition_index]->KeyString,
+                            idCheckSkillType,
+                            condition_index, // bit```
+                            0  // unused
+                      );
+            qDebug("sendCMD_ADD_NODE_CONDITION Skill (%d): %d", idCheckSkillType, condition_index);
+        }
 
     } else {
         sendCMD_DELETE_NODE(currentl2w->getCurrentSettings()->condition[condition_index]->KeyString);

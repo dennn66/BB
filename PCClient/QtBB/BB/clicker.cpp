@@ -23,9 +23,6 @@ Clicker::Clicker(QWidget *parent) :
     //LOAD CONFIG BB.ini
     QSettings sett("bb.ini", QSettings::IniFormat);
 
-    sett.value("MAIN/DefaultProject", "default.bbproj").toString();
-
-
     right_offset = sett.value("MAIN/RightOffset", 25).toInt();
     top_offset = sett.value("MAIN/TopOffset", 60).toInt();
 
@@ -48,8 +45,6 @@ Clicker::Clicker(QWidget *parent) :
     ms->setConnected(true);
     connect(ms, SIGNAL(keyLPressed(int, int)), this, SLOT(keyLPressed(int, int)));
     connect(ms, SIGNAL(keyLReleased(int, int)), this, SLOT(keyLReleased(int, int)));
-
-
 }
 
 
@@ -169,28 +164,21 @@ void Clicker::showDongleStatus(unsigned char d_stt, int updatetime)
         keyenable2[i]->setEnabled (true);
     }
 
-
     ui->cbCtrl->setChecked((d_stt & (1 << DEVICE_CTRL)) > 0);
     ui->cbShift->setChecked((d_stt & (1 << DEVICE_SHIFT)) > 0);
 
-    bool state = (d_stt & (1<<DEVICE_STATUS)) > 0;
-    switch(state){
-    case STATE_OFF:
-
+    if((d_stt & (1<<DEVICE_STATUS)) == 0){
         ui->cbDongle->setChecked(false);
         ui->cbDongle->setEnabled(true);
-        //ui->cbDongle->setStyleSheet(StyleSheetCheckBox[1]); //RED
-        break;
-    case STATE_ON:
+        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[1]); //RED
+    } else if((d_stt & (1<<DEVICE_MODE)) == 0){
         ui->cbDongle->setChecked(true);
         ui->cbDongle->setEnabled(true);
-        //ui->cbDongle->setStyleSheet(StyleSheetCheckBox[2]); //BLUE
-        break;
-     default:
-        ui->cbDongle->setChecked(false);
-        ui->cbDongle->setEnabled(false);
-        //ui->cbDongle->setStyleSheet(StyleSheetCheckBox[0]); // YELLOW
-        break;
+        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[3]); //GREEN
+    } else {
+        ui->cbDongle->setChecked(true);
+        ui->cbDongle->setEnabled(true);
+        ui->cbDongle->setStyleSheet(StyleSheetCheckBox[2]); //BLUE
     }
 
 }

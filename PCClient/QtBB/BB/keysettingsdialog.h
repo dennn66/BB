@@ -20,7 +20,7 @@ class KeySettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit KeySettingsDialog(KeyCondition* con, QWidget *parent = 0);
+    explicit KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *parent = 0);
     ~KeySettingsDialog();
 
 private:

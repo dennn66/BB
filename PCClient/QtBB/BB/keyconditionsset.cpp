@@ -73,7 +73,7 @@ int KeyConditionsSet::LoadConfig(QString file_name){
             //varstream  << "$FGroupEnable" <<j;
             varstream  << KeyCondition::conditionb_tag[j];
             bool default_val = 1;
-            if(j == idCheckStar) default_val = 0;
+            if(j == idCheckStar || j == idCheckSkillTimeout) default_val = 0;
             condition[i]->conditionb[j] = sett.value(var.toStdString().c_str(), default_val).toBool();
         }
 

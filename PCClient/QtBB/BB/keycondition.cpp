@@ -31,7 +31,8 @@ const char* KeyCondition::conditionb_tag[CONDBNUM] = {
     "$FTargetMeOrPet",
     "$FTargetChar",
     "$FTargetMob",
-    "$FNoTarget"
+    "$FNoTarget",
+    "$FCheckSkill"
 };
 
 const char* KeyCondition::conditionb_name[CONDBNUM] = {

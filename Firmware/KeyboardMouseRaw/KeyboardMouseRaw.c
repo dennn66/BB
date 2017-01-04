@@ -562,11 +562,17 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 				case CMD_ADD_NODE:
 					tmp  = 256*RawReport[5]+RawReport[4];
 					List_Add_Node(
-						RawReport[2], 
-						RawReport[3], 
-						tmp,
-						RawReport[6],
-						RawReport[7]);
+						RawReport[2], //Key Code
+						RawReport[3], // $xPauseTime   //; 0.5s grade
+						tmp,			// ReleaseTime //; 0.1s grade
+						RawReport[6],	// $xConditionTime   //; 0.5s grade
+						RawReport[7]);  // Groups + Ctrl + Shift
+						// 0b00000001; // Shift
+						// 0b00000010; // Ctrl
+						// 0b00111100; // Groups
+						// 0b11000000; // Cant be used
+						
+						
 					break;
 				case CMD_DELETE_NODE:
 					List_Delete_Node(RawReport[2]);
@@ -575,15 +581,26 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 					List_Delete_All();
 					break;
 				case CMD_SET_HPCPMP:
-					// mobHP playerHP playerCP playerMP
+					// mobhp,  hp,  cp,  mp,  vp,  mobmp
 					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
 					break;
 				case CMD_SET_TARGET_STATE:
-					// mobHP playerHP playerCP playerMP
-					//if(RawReport[2] == 2) DebugFlag = 1;
-					set_TargetState(RawReport[2], RawReport[3]); // Target type, Star State
+					//if(RawReport[4] == 32) {
+					//	DebugFlag = 1;
+					//} else {
+					//	DebugFlag = 0;
+					//}
+					set_TargetState(RawReport[2], // Target type, 
+									RawReport[3],   // Star State
+									RawReport[4],   // Skill State
+									RawReport[5],   // Skill State2
+									RawReport[6],   // Skill State3
+									RawReport[7]   // Skill State4
+									
+									); // Target type, Star State
 					break;
 				case CMD_ADD_NODE_CONDITION:
+				    //if(RawReport[3] == CheckSkillType) setDebugFlag(1);
 					if(RawReport[3] == targetType) {
 						if( RawReport[4] == 0b00001111 && (RawReport[5]&0b00000010) == 0){
 							List_Delete_Condition(
@@ -595,6 +612,18 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 								RawReport[3],   // Condition Type
 								RawReport[4],   // Condition TargetType
 								RawReport[5]);  // Condition StarState							
+						}
+					} else if(RawReport[3] == CheckSkillType) {
+						if( RawReport[4] > 31){
+							List_Delete_Condition(
+								RawReport[2],    //Key Code
+								RawReport[3]);   // Condition Type
+						} else {
+							List_Update_Condition(
+								RawReport[2],   //Key Code
+								RawReport[3],   // Condition Type
+								RawReport[4],   // Skill index
+								RawReport[5]);  // Unused							
 						}
 					} else {
 						if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||
