@@ -77,7 +77,7 @@ private:
 
 public slots:
     void showDongleStatus(unsigned char d_stt, int updatetime); /* */
-    void showParserStatus(int updatetime);
+    void showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus);
     void cbDongleClicked(bool checked);
     void cbCtrlShiftClicked(bool checked);
     void cbKeyEnableClicked(bool checked);
@@ -97,6 +97,7 @@ public slots:
     void keyGlobalPressed(DWORD vkCode);
     void keyGlobalReleased(DWORD vkCode);
     void doActivateL2();
+    void pbSettingsClicked();
 
 signals:
     //void setDongleState(int stt);

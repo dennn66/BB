@@ -176,7 +176,6 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
 
 
     connect(dongle_worker, SIGNAL(showDongleStatusSig(unsigned char, int)), this, SLOT(showDongleStatus(unsigned char, int)));
-    connect(l2_parser, SIGNAL(showParserStatus(int)), this, SLOT(showParserStatus(int)));
 
     connect(this, SIGNAL(setDongleGroupState(int, bool)), dongle_worker, SLOT(setGroupState(int, bool)));
    // connect(this, SIGNAL(setDongleState(int)), dongle_worker, SLOT(setDongleState(int)));
@@ -199,6 +198,10 @@ BoredomBreaker::BoredomBreaker(QWidget *parent) :
     connect(clicker, SIGNAL(doActivateL2()), l2_parser, SLOT(doActivateL2()));
     connect(clicker, SIGNAL(doActivateL2()), this, SLOT(doActivateL2()));
     connect(l2_parser, SIGNAL(isL2Active(bool, int, int)), clicker, SLOT(isL2Active(bool, int, int)));
+    connect(l2_parser, SIGNAL(showParserStatus(int, bool, bool, bool)), this, SLOT(showParserStatus(int, bool, bool, bool)));
+    connect(l2_parser, SIGNAL(showParserStatus(int, bool, bool, bool)), clicker, SLOT(showParserStatus(int, bool, bool, bool)));
+    connect(clicker, SIGNAL(pbFindBarsClicked()), this, SLOT(pbFindBarsClicked()));
+    connect(clicker, SIGNAL(pbSettingsClicked()), this, SLOT(pbSettingsClicked()));
 
     //clicker->show();
 
@@ -224,6 +227,24 @@ BoredomBreaker::~BoredomBreaker()
     delete clicker;
 }
 
+void BoredomBreaker::pbSettingsClicked()
+{
+    qDebug("BoredomBreaker::pbSettingsClicked()");
+    HWND m_hWnd = (HWND)(this->winId());
+    HWND hCurWnd = ::GetForegroundWindow();
+    DWORD dwMyID = ::GetCurrentThreadId();
+    DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
+    ::AttachThreadInput(dwCurID, dwMyID, TRUE);
+    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetForegroundWindow(m_hWnd);
+    ::AttachThreadInput(dwCurID, dwMyID, FALSE);
+    ::SetFocus(m_hWnd);
+    ::SetActiveWindow(m_hWnd);
+    //this->activateWindow();
+    //this->raise();
+}
+
 void BoredomBreaker::doActivateL2()
 {
     qDebug("BoredomBreaker::doActivateL2W()");
@@ -231,6 +252,19 @@ void BoredomBreaker::doActivateL2()
     int index = ui->cmbWinList->currentIndex();
     if(!isValidIndex(index))return;
     //SetActiveWindow(l2list[index]->getHWND());
+
+
+    HWND m_hWnd = (HWND)l2list[index]->getHWND();
+    HWND hCurWnd = ::GetForegroundWindow();
+    DWORD dwMyID = ::GetCurrentThreadId();
+    DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
+    ::AttachThreadInput(dwCurID, dwMyID, TRUE);
+    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetForegroundWindow(m_hWnd);
+    ::AttachThreadInput(dwCurID, dwMyID, FALSE);
+    ::SetFocus(m_hWnd);
+    ::SetActiveWindow(m_hWnd);
 
 }
 
@@ -594,8 +628,11 @@ void BoredomBreaker::showDongleStatus(unsigned char d_stt, int updatetime)
 }
 
 
-void BoredomBreaker::showParserStatus(int updatetime){
+void BoredomBreaker::showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus){
     qDebug("BoredomBreaker::showParserStatus(int updatetime) %d", updatetime);
+    Q_UNUSED(mainstatus);
+    Q_UNUSED(mobstatus);
+    Q_UNUSED(toolbarstatus);
     ellipsed_time=((ellipsed_time*5)+updatetime)/6;
     QString label;
     QTextStream(&label) << ellipsed_time << " ms";

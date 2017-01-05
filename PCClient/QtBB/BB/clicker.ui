@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>56</width>
-    <height>158</height>
+    <width>51</width>
+    <height>233</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -22,11 +22,48 @@
     <height>300</height>
    </size>
   </property>
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>120</red>
+        <green>120</green>
+        <blue>120</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
   <widget class="QCheckBox" name="cbDongle">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>0</y>
+     <y>2</y>
      <width>41</width>
      <height>17</height>
     </rect>
@@ -39,7 +76,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>140</y>
+     <y>155</y>
      <width>45</width>
      <height>17</height>
     </rect>
@@ -52,7 +89,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>124</y>
+     <y>132</y>
      <width>40</width>
      <height>17</height>
     </rect>
@@ -78,7 +115,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>50</y>
+     <y>53</y>
      <width>41</width>
      <height>20</height>
     </rect>
@@ -91,7 +128,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>70</y>
+     <y>76</y>
      <width>41</width>
      <height>20</height>
     </rect>
@@ -104,7 +141,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>90</y>
+     <y>99</y>
      <width>41</width>
      <height>20</height>
     </rect>
@@ -113,6 +150,150 @@
     <string>B4</string>
    </property>
   </widget>
+  <widget class="QLCDNumber" name="lcd_ellipsed_time">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>210</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbStatus">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>186</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbOnOff">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbB1">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>30</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbB2">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>53</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbB3">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>76</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbB4">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>99</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbCtrl">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>132</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbShift">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>155</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbBackground">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>55</width>
+     <height>233</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <zorder>cbCtrl</zorder>
+  <zorder>cbDongle</zorder>
+  <zorder>cbShift</zorder>
+  <zorder>cbB4</zorder>
+  <zorder>cbB3</zorder>
+  <zorder>cbB2</zorder>
+  <zorder>cbB1</zorder>
+  <zorder>lbBackground</zorder>
+  <zorder>lbB1</zorder>
+  <zorder>lbB2</zorder>
+  <zorder>lbB3</zorder>
+  <zorder>lbB4</zorder>
+  <zorder>lbCtrl</zorder>
+  <zorder>lbOnOff</zorder>
+  <zorder>lbShift</zorder>
+  <zorder>lbStatus</zorder>
+  <zorder>lcd_ellipsed_time</zorder>
  </widget>
  <resources/>
  <connections/>

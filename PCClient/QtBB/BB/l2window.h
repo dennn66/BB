@@ -58,6 +58,9 @@ public:
     KeyConditionsSet* getCurrentSettings();
     bool isSkillRdy(int num){return skillrdy[num];}
     bool getConditionSkill(int index){return getCurrentSettings()->condition[index]->conditionb[idCheckSkillTimeout];}
+    bool getMainStatus(){return (maintopleft.rx() > 0);}
+    bool getMobStatus(){return (mobtopleft.rx() > 0);}
+    bool getToolbarStatus(){return (toolbartopleft.rx() > 0);}
 
     //KeyCondition* condition[KEYNUM];
 

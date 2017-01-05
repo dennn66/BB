@@ -32,10 +32,17 @@ private:
     void toggleGroup(int group);
     void enableGroup(int group, bool state);
     bool isUnderWidget(QWidget* widget, int x, int y);
+    void drawStatusBtn(QImage* imgStatus, bool pressed, bool mainstatus, bool mobstatus, bool toolbarstatus);
     static const char* StyleSheetCheckBox[5];
     SystemMouseHook *ms;
     int right_offset;
     int top_offset;
+    QImage* released_btn;
+    QImage* pressed_btn;
+    QImage* green_frame;
+    QImage* red_frame;
+    bool bFindBarsIsPressed;
+    bool bSettingsIsPressed;
 
 
 
@@ -44,6 +51,7 @@ public slots:
     void cbCtrlShiftClicked(bool checked);
     void cbKeyEnableBxClicked(bool checked);
     void showDongleStatus(unsigned char d_stt, int updatetime); /* */
+    void showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus);
     void isL2Active(bool isActive, int right, int top);
     // Broadcasts a key has been pressed
     void keyLPressed(int x, int y);
@@ -56,6 +64,8 @@ signals:
     void doSetState(bool stt);
     void doSetModifier(bool bCtrl, bool bShift);
     void doActivateL2();
+    void pbFindBarsClicked();
+    void pbSettingsClicked();
 };
 
 #endif // CLICKER_H

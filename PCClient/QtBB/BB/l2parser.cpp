@@ -19,15 +19,13 @@ void L2parser::process()
             try {
                 currentl2w->check();
                 emit isL2Active( currentl2w->isActiveWindow, currentl2w->windowtopright.rx(), currentl2w->windowtopright.ry());
+                emit showParserStatus(updateTime.elapsed(), currentl2w->getMainStatus(), currentl2w->getMobStatus(), currentl2w->getToolbarStatus());
             } catch(...) {
                 qDebug("Check failed");
                 emit isL2Active( false, 0, 0);
             }
 
         }
-
-        emit showParserStatus(updateTime.elapsed());
-
         delta = 50 - updateTime.elapsed();
         delta = (delta > 0)?delta:0;
         #ifdef WIN32

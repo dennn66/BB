@@ -25,7 +25,7 @@ public slots:
 signals:
    void finished();
    void error(QString err);
-   void showParserStatus(int updatetime);
+   void showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus);
    void isL2Active(bool isActive, int right, int top);
 
 
