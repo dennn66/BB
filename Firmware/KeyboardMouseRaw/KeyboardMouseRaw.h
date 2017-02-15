@@ -121,6 +121,7 @@
 		
 		void led_indicator_task(uint16_t time_delta);
 		void host_timeout_task(uint16_t time_delta);
+		void toggleShowRcvStat(void) ;
 
 		void setDebugFlag(int8_t state);
 		uint8_t get_activeState(void);
@@ -157,7 +158,8 @@
 				CMD_UNUSED = 5, /** unused  */
 				CMD_SET_HPCPMP = 6, /** set param values  */
 				CMD_ADD_NODE_CONDITION = 7, /** set param values  */
-				CMD_SET_TARGET_STATE = 8, /** set star state and type of target  */
+				CMD_SET_TARGET_STATE = 8, /** set star state and type of target, old version  */
+				CMD_SET_SKILL_STATE = 9, /** set skill state, new version  */
 		};
 		
 		

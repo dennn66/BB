@@ -23,6 +23,7 @@
 #define CMD_SET_HPCPMP          6
 #define CMD_ADD_NODE_CONDITION  7
 #define CMD_SET_TARGET_STATE    8
+#define CMD_SET_SKILL_STATE    9
 
 //#define INTERFACE_ID_Keyboard   0     /**< Keyboard interface descriptor ID */
 //#define INTERFACE_ID_Mouse      1     /**< Mouse interface descriptor ID */
@@ -66,7 +67,7 @@
 #define 	HID_KEYBOARD_MODIFIER_LEFTCTRL   (1 << 0)
 #define 	HID_KEYBOARD_MODIFIER_LEFTSHIFT   (1 << 1)
 
-#define KEY_DB_SIZE         223
+
 
 // Set device status
 // 0 - Device Status
@@ -99,10 +100,20 @@ public:
     void doSendKeyToDongle(int condition_index);
     void doSaveAllToDongle();
     void setActiveL2W(L2Window* l2w);
-    void setDeviceState(unsigned char state);
-    static const char* KeyMnemonicDB[KEY_DB_SIZE];
-    static unsigned char KeyCodesDB[KEY_DB_SIZE];
+    void setDeviceState(unsigned char state){
+        qDebug("Dongle::setDeviceState(unsigned int state): %d", state);
+        target_device_state = state;
+        activity = DO_SETDEVICESTATE;
+    }
     unsigned char getDeviceState(){return current_device_state;}
+
+    void setGroupState(unsigned char state){
+        qDebug("Dongle::setDeviceState(unsigned int state): %d", state);
+        target_group_state = state;
+        activity = DO_SETDEVICESTATE;
+    }
+    unsigned char getGroupState(){return current_group_state;}
+
 
  public slots:
     void process();
@@ -116,29 +127,33 @@ signals:
 private:
     hid_device *handle;
     int state;
+    unsigned char target_group_state;
+    unsigned char current_group_state;
+
     unsigned char target_device_state;
     unsigned char current_device_state;
     int activity;
     L2Window* currentl2w;
     bool key_transfer_state[KEYNUM];
+    bool bEnableVersion2;
     void spin();
 
     int connect();
     int disconnect();
     void recieve_status();
-    int send_key(QString Key, bool Ctrl, bool Shift);
+    int send_key(unsigned char , bool Ctrl, bool Shift);
     int set_key_report(unsigned char key_code, bool Ctrl, bool Shift);
     int send_command(int device, int command, unsigned char* cmd_arg);
-    unsigned char string2keycode(QString Key);
     void transmitHPCPMP();
     void sendCMD_SET_STATE();
     void sendCMD_WRITE_CONFIG();
     void sendCMD_READ_CONFIG();
-    void sendCMD_ADD_NODE(QString Key, float PauseTime, float ReleaseTime, float ConditionTime, unsigned int groups, bool Ctrl, bool Shift);
-    void sendCMD_DELETE_NODE(QString Key);
+    void sendCMD_ADD_NODE(unsigned char Key, float PauseTime, float ReleaseTime, float ConditionTime, unsigned int groups, bool Ctrl, bool Shift);
+    void sendCMD_DELETE_NODE(unsigned char Key);
     void sendCMD_DELETE_ALL();
-    void sendCMD_ADD_NODE_CONDITION(QString Key, unsigned char Type, unsigned char Min, unsigned char Max);
+    void sendCMD_ADD_NODE_CONDITION(unsigned char Key, unsigned char Type, unsigned char Min, unsigned char Max);
     void sendCMD_SET_TARGET_STATE();
+    void sendCMD_SET_SKILL_STATE();
 
     unsigned char getXP(int idXP);
     unsigned char getTargetType();

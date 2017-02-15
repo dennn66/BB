@@ -4,6 +4,7 @@
 #include <QtWinExtras/QtWin>
 #include <QImage>
 #include <QTextStream>
+#include <QFile>
 
 #define BAR_OFF false
 #define BAR_ON true
@@ -47,16 +48,21 @@ public:
     XPBar();
     bool getStatus();
     int getXP();
+    void setXP(int i){XP = i;}
     int getY();
     int getBegin();
     int getEnd();
     bool findXPBar(QImage image, RECT targetRect);
     bool checkXPBar(QImage image);
     int checkXPBarPartial(QImage image, int begin, int end);
+    int checkXPPatternPartial(QImage image, int pos);
     void setColors(QRgb color, QRgb bk_color);
     void setbarID(int id);
     void setStatus(bool stt);
-    static bool CompareColors(QRgb color1, QRgb color2, UINT8 delta);
+    static bool CompareColors(QRgb color1, QRgb color2, UINT8 delta, bool mode = true);
+    static bool checkPattern(QPoint topleft, QImage* image, QImage* pattern, int num, int treshold, int deviation);
+    bool patternMethod;
+    QImage barpattern;
 
 
 

@@ -1,8 +1,7 @@
 #include "keysettingsdialog.h"
-#include "ui_keysettingsdialog.h"
-#include "dongle.h"
 
-KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *parent) :
+
+KeySettingsDialog::KeySettingsDialog(KeyCondition* con, L2Window* l2w, int tool, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::KeySettingsDialog)
 {
@@ -12,6 +11,8 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *p
     condition = con;
     QString value;
     QTextStream out(&value);
+    currentl2w = l2w;
+    toolNumber = tool;
 
     controlf[idCoolDown      ] = ui->leCoolDown;
     controlf[idPause         ] = ui->lePause;
@@ -31,15 +32,17 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *p
     controli[idMaxMobMP      ] = ui->leMobMPMax;
 
     for(int i = 0; i<KEY_DB_SIZE; i++){
-        ui->cbKeyMnemonic->addItem(Dongle::KeyMnemonicDB[i]);
-        if(strcmp(Dongle::KeyMnemonicDB[i], condition->KeyString.toStdString().c_str()) == 0){
+        ui->cbKeyMnemonic->addItem(condition->KeyMnemonicDB[i]);
+        if(strcmp(condition->KeyMnemonicDB[i], condition->KeyString.toStdString().c_str()) == 0){
             ui->cbKeyMnemonic->setCurrentIndex(i);
         }
     }
+
+
     connect(ui->cbKeyMnemonic, SIGNAL(activated(int)), SLOT(cbKeyMnemonicActivated(int)));
     connect(ui->cbCtrl, SIGNAL(clicked(bool)), SLOT(cbCtrlClicked(bool)));
     connect(ui->cbShift, SIGNAL(clicked(bool)), SLOT(cbShiftClicked(bool)));
-    if(!tool->isNull())    ui->tool_label->setPixmap(QPixmap::fromImage(*tool));
+    if(!currentl2w->getTool(toolNumber)->isNull())    ui->tool_label->setPixmap(QPixmap::fromImage(*currentl2w->getTool(toolNumber)));
 
     //ui->cbPermanent->setChecked(condition->permanent);
     ui->cbCtrl->setChecked(condition->ctrl);
@@ -83,31 +86,81 @@ KeySettingsDialog::KeySettingsDialog(KeyCondition* con, QImage* tool, QWidget *p
     }
     ui->chkbox_widget_2->setLayout(layout_2);
     controlb[idCheckStar] = ui->cbCheckStar;
-    controlb[idCheckStar]->setChecked (condition->conditionb[idCheckStar]);
+    controlb[idCheckStar]->setChecked (condition->getConditionB(idCheckStar));
+    controlb[idStarCondition] = ui->cbStarState;
+    controlb[idStarCondition]->setChecked (condition->getConditionB(idStarCondition));
+    controlb[idStarCondition]->setEnabled (condition->getConditionB(idCheckStar));
     controlb[idCheckSkillTimeout] = ui->cbCheckSkill;
-    controlb[idCheckSkillTimeout]->setChecked (condition->conditionb[idCheckSkillTimeout]);
-    controlb[idStarState] = ui->cbStarState;
-    controlb[idStarState]->setChecked (condition->conditionb[idStarState]);
+    controlb[idCheckSkillTimeout]->setChecked (condition->getConditionB(idCheckSkillTimeout));
+    controlb[idCheckPet] = ui->cbCheckPet;
+    controlb[idCheckPet]->setChecked (condition->getConditionB(idCheckPet));
+    controlb[idPetState] = ui->cbPetState;
+    controlb[idPetState]->setChecked (condition->getConditionB(idPetState));
+    controlb[idPetState]->setEnabled(condition->getConditionB(idCheckPet));
+
+    lstAllSkills  = new QListWidget(this);
+
+    lstAllSkills->resize( 4 + 32*12 + 6*(12-1) + 8, 2 + 32*3 + 5*(3 - 1) + 6);
+    lstAllSkills->move(this->width() - lstAllSkills->width() - 5, this->height() - lstAllSkills->height() - 5);
+    lstAllSkills->setIconSize( QSize( 32, 32 ) );
+    lstAllSkills->setViewMode( QListWidget::IconMode );
+    lstAllSkills->setSelectionMode(QAbstractItemView::SingleSelection);
+    lstAllSkills->setDragEnabled(false);
+    lstAllSkills->setDragDropMode(QAbstractItemView::NoDragDrop);
+    lstAllSkills->viewport()->setAcceptDrops(false);
+    lstAllSkills->setDropIndicatorShown(false);
+    lstAllSkills->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    lstAllSkills->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    for(int i = 0; i < idNoUseSkillNum; i ++){
+
+            listNoUseSkill[i] = new QListWidgetItem;
+            QString label;
+            QTextStream label_stream(&label);
+            label_stream << i+1;
+            //listNoUseSkill[i]->setData(Qt::DisplayRole, label);
+            if(condition->getConditionB(idNoUseSkillState+i)){
+               // listNoUseSkill[i]->setData(Qt::CheckStateRole, Qt::Checked);
+            } else {
+               // listNoUseSkill[i]->setData(Qt::CheckStateRole, Qt::Unchecked);
+            }
+            if(!currentl2w->getTool(toolNumber)->isNull()) listNoUseSkill[i]->setIcon( QPixmap::fromImage(*currentl2w->getTool(i)) );
+            //listWgt.setIconSize( QSize( 32, 32 ) );
+            //listWgt.setViewMode( QListWidget::IconMode );
+            //if(!currentl2w->getTool(toolNumber)->isNull())    ui->tool_label->setPixmap(QPixmap::fromImage(*currentl2w->getTool(toolNumber)));
+        if( condition->getConditionB(idNoUseSkillState+i)){
+             listNoUseSkill[i]->setFlags(  Qt::ItemIsEnabled);
+        }  else {
+            listNoUseSkill[i]->setFlags( Qt::NoItemFlags);
+        }
+            lstAllSkills->addItem(listNoUseSkill[i]);
+
+    }
+
+    lstAllSkills->show();
+
+
+        connect(lstAllSkills, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(itemChanged(QListWidgetItem*)));
 
 
 
     QGridLayout *layout_3 = new QGridLayout;
-    for(int i=0;i<2;i++)
+    for(int i=0;i<4;i++)
     {
-        for(int j=0;j<2;j++)
+        for(int j=0;j<1;j++)
         {
         //int j=0;
             key_label = condition->conditionb_name[idTargetMeOrPet+i+j*2];
             QGridLayout *sell  = new QGridLayout;
             controlb[idTargetMeOrPet+i+j*2] = new QCheckBox(key_label.toStdString().c_str());
             sell->addWidget(controlb[idTargetMeOrPet+i+j*2],0, 0);
-            controlb[idTargetMeOrPet+i+j*2]->setChecked (condition->conditionb[idTargetMeOrPet+i+j*2]);
+            controlb[idTargetMeOrPet+i+j*2]->setChecked (condition->getConditionB(idTargetMeOrPet+i+j*2));
             layout_3->addLayout(sell,i, j);
         }
     }
     ui->gbTargetType->setLayout(layout_3);
 
-    for(int i=0;i<CONDBNUM;i++){
+    for(int i=0;i<idNoUseSkillState;i++){
         connect(controlb[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
     }
 
@@ -119,15 +172,35 @@ KeySettingsDialog::~KeySettingsDialog()
     delete ui;
 }
 
+void KeySettingsDialog::itemChanged(QListWidgetItem* item){
+    int index = -1;
+    for(index=0; index < idNoUseSkillNum; index++){
+        if(listNoUseSkill[index] == item) break;
+    }
+    if(index != -1 && (index != toolNumber)) {
+
+        if(listNoUseSkill[index]->flags() == Qt::ItemIsEnabled){
+            listNoUseSkill[index]->setFlags( Qt::NoItemFlags);
+        }  else {
+            listNoUseSkill[index]->setFlags(  Qt::ItemIsEnabled);
+        }
+        condition->setConditionB(idNoUseSkillState+index, (listNoUseSkill[index]->flags() == Qt::ItemIsEnabled));
+    }
+
+    }
+
 void KeySettingsDialog::cbKeyEnableBxClicked(bool checked){
     qDebug("KeySettingsDialog::cbKeyEnableBxClicked(bool checked): %d", checked);
     QCheckBox* cb = dynamic_cast<QCheckBox*>(QObject::sender());
     if( cb != NULL )
     {
         int i = 0;
-        while( (i < CONDBNUM) && controlb[i] != cb){i++;}
-        if(i<CONDBNUM){
-            condition->conditionb[i] = checked;
+        while( (i < idNoUseSkillState) && controlb[i] != cb){i++;}
+        if(i<idNoUseSkillState){
+
+            condition->setConditionB(i, checked);
+            controlb[idStarCondition]->setEnabled (condition->getConditionB(idCheckStar));
+            controlb[idPetState]->setEnabled(condition->getConditionB(idCheckPet));
         }
     }
 }
@@ -177,5 +250,6 @@ void KeySettingsDialog::cbShiftClicked(bool checked){
 
 void KeySettingsDialog::cbKeyMnemonicActivated(int index)
 {
-    condition->KeyString = Dongle::KeyMnemonicDB[index];
+    condition->KeyString = condition->KeyMnemonicDB[index];
+    condition->KeyCode =condition->KeyCodesDB[index];
 }

@@ -14,7 +14,6 @@ Clicker::Clicker(QWidget *parent) :
     ui(new Ui::Clicker)
 {
     ui->setupUi(this);
-    //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool);
     setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput| Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground);
 
@@ -65,9 +64,6 @@ Clicker::Clicker(QWidget *parent) :
     released_btn = new QImage(QSize(51,23), QImage::Format_ARGB32);
     *released_btn = *green_frame;
 
-    //setWindowFlags(windowFlags()|Qt::WindowStaysOnTopHint);
-
-    //ui->lcd_ellipsed_time->setAutoFillBackground(true);
     //LOAD CONFIG BB.ini
     QSettings sett("bb.ini", QSettings::IniFormat);
 
@@ -88,14 +84,13 @@ Clicker::Clicker(QWidget *parent) :
         connect(keyenable2[i], SIGNAL(clicked(bool)), SLOT(cbKeyEnableBxClicked(bool)));
     }
 
-   // connect(dongle, SIGNAL(showStatus(int, int, int)), this, SLOT(showDongleStatus(int, int, int)));
     ms = SystemMouseHook::instance();
     ms->setConnected(true);
     connect(ms, SIGNAL(keyLPressed(int, int)), this, SLOT(keyLPressed(int, int)));
     connect(ms, SIGNAL(keyLReleased(int, int)), this, SLOT(keyLReleased(int, int)));
 }
 
-void Clicker::drawStatusBtn(QImage* imgStatus, bool pressed, bool mainstatus, bool mobstatus, bool toolbarstatus){
+void Clicker::drawStatusBtn(QImage* imgStatus, bool pressed,  bool mainleftstatus, bool mainrightstatus, bool mobleftstatus,  bool mobrightstatus, bool toolbarstatus,  bool petstatus, int target){
 
     *imgStatus = *green_frame;
     QPainter p;
@@ -105,22 +100,73 @@ void Clicker::drawStatusBtn(QImage* imgStatus, bool pressed, bool mainstatus, bo
         p.setBrush(QBrush(QColor("#4400FF00"), Qt::SolidPattern));
         p.drawRect(QRect(3,3,44,16));
     }
-    if(mainstatus){
+    if(mainleftstatus){
         p.setPen(QPen(QColor("#8800FF00")));
         p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
     } else {
         p.setPen(QPen(QColor("#88FF0000")));
         p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
     }
-    p.drawRect(QRect(3,3,10,5));
-    if(mobstatus){
+    p.drawRect(QRect(3,3,5,5));
+    if(mainrightstatus){
         p.setPen(QPen(QColor("#8800FF00")));
         p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
     } else {
         p.setPen(QPen(QColor("#88FF0000")));
         p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
     }
-    p.drawRect(QRect(18,3,10,4));
+    p.drawRect(QRect(8,3,5,5));
+
+    if(mobleftstatus && mobrightstatus){
+        if(target == TARGETMEORPET) {
+            p.setPen(QPen(QColor("#8800FFFF")));
+            p.setBrush(QBrush(QColor("#8800FFFF"), Qt::SolidPattern));
+
+        } else if(target == NOTARGET){
+            p.setPen(QPen(QColor("#88888888")));
+            p.setBrush(QBrush(QColor("#88888888"), Qt::SolidPattern));
+
+        } else if(target == TARGETCHAR){
+            p.setPen(QPen(QColor("#88FF00FF")));
+            p.setBrush(QBrush(QColor("#88FF00FF"), Qt::SolidPattern));
+
+        } else if(target == TARGETMOB){
+            p.setPen(QPen(QColor("#880000FF")));
+            p.setBrush(QBrush(QColor("#880000FF"), Qt::SolidPattern));
+
+        }
+        p.drawRect(QRect(18,3,14,3));
+    } else {
+
+        if(mobleftstatus){
+            p.setPen(QPen(QColor("#8800FF00")));
+            p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
+        } else {
+            p.setPen(QPen(QColor("#88FF0000")));
+            p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
+        }
+        p.drawRect(QRect(18,3,7,3));
+
+        if(mobrightstatus){
+            p.setPen(QPen(QColor("#8800FF00")));
+            p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
+        } else {
+            p.setPen(QPen(QColor("#88FF0000")));
+            p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
+        }
+        p.drawRect(QRect(25,3,7,3));
+    }
+
+    if(petstatus){
+        p.setPen(QPen(QColor("#8800FF00")));
+        p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
+    } else {
+        p.setPen(QPen(QColor("#88FF0000")));
+        p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
+    }
+
+    p.drawEllipse(QRect(40,2,6,6));
+
     if(toolbarstatus){
         p.setPen(QPen(QColor("#8800FF00")));
         p.setBrush(QBrush(QColor("#8800FF00"), Qt::SolidPattern));
@@ -129,21 +175,9 @@ void Clicker::drawStatusBtn(QImage* imgStatus, bool pressed, bool mainstatus, bo
         p.setBrush(QBrush(QColor("#88FF0000"), Qt::SolidPattern));
     }
     p.drawRect(QRect(22,12,20,5));
-/*
-    p.setPen(QPen(QColor("#4400FF00")));
-    p.setBrush(QBrush(QColor("#4400FF00"), Qt::NoBrush));
-    p.drawRect(QRect(0,0,50,22));
-    p.setPen(QPen(QColor("#EE00FF00")));
-    p.setBrush(QBrush(QColor("#8800FF00"), Qt::NoBrush));
-    p.drawRect(QRect(1,1,48,20));
-    p.setPen(QPen(QColor("#4400FF00")));
-    p.setBrush(QBrush(QColor("#4400FF00"), Qt::NoBrush));
-    p.drawRect(QRect(2,2,46,18));
-    p.end();
- */
 }
 
-void Clicker::showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus){
+void Clicker::showParserStatus(int updatetime, bool mainleftstatus, bool mainrightstatus, bool mobleftstatus,  bool mobrightstatus, bool toolbarstatus, bool petstatus, int target){
     qDebug("Clicker::showParserStatus(int updatetime) %d", updatetime);
     static int ellipsed_time=0;
     ellipsed_time=((ellipsed_time*5)+updatetime)/6;
@@ -195,16 +229,13 @@ void Clicker::showParserStatus(int updatetime, bool mainstatus, bool mobstatus, 
     } else {
         ui->lbCtrl->setPixmap(QPixmap::fromImage(*red_frame));
     }
-    drawStatusBtn(pressed_btn, true,  mainstatus,  mobstatus,  toolbarstatus);
-    drawStatusBtn(released_btn, false,  mainstatus,  mobstatus,  toolbarstatus);
+    drawStatusBtn(pressed_btn, true,   mainleftstatus,  mainrightstatus,  mobleftstatus,   mobrightstatus,  toolbarstatus, petstatus, target);
+    drawStatusBtn(released_btn, false,   mainleftstatus,  mainrightstatus,  mobleftstatus,   mobrightstatus,  toolbarstatus, petstatus, target);
     if(bFindBarsIsPressed){
         if(!pressed_btn->isNull()) ui->lbStatus->setPixmap(QPixmap::fromImage(*pressed_btn));
     } else {
         if(!released_btn->isNull()) ui->lbStatus->setPixmap(QPixmap::fromImage(*released_btn));
     }
-    //ui->pbStatus->setPixmap(QPixmap::fromImage(iStatus));
-
-
 }
 
 // Broadcasts a key has been pressed
@@ -244,9 +275,6 @@ void Clicker::keyLPressed(int x, int y){
             enableGroup(i, !keyenable2[i]->isChecked());
         }
     }
-
-
-
 }
 
 bool Clicker::isUnderWidget(QWidget* widget, int x, int y){
@@ -277,9 +305,6 @@ void Clicker::keyLReleased(int x, int y){
         bFindBarsIsPressed = false;
         if(!released_btn->isNull())ui->lbStatus->setPixmap(QPixmap::fromImage(*released_btn));
     }
-    //ui->cbDongle->setStyleSheet(StyleSheetCheckBox[2]); //BLUE
-
-
     if(isUnderWidget(ui->lcd_ellipsed_time, x, y)) {
         emit pbSettingsClicked();
     }
@@ -289,7 +314,6 @@ void Clicker::keyLReleased(int x, int y){
             palette.setBrush(QPalette::Background,QBrush(QColor("#880000FF"), Qt::SolidPattern));
             ui->lcd_ellipsed_time->setPalette(palette);
     }
-
 }
 
 
@@ -323,7 +347,6 @@ void Clicker::cbKeyEnableBxClicked(bool checked){
 
 void Clicker::cbDongleClicked(bool checked){
     qDebug("Clicker::cbDongleClicked(bool checked): %d", checked);
-    //dongle->doSetState(checked);
     emit doSetState(checked);
     emit doActivateL2();
 }
@@ -331,7 +354,6 @@ void Clicker::cbDongleClicked(bool checked){
 void Clicker::cbCtrlShiftClicked(bool checked){
     qDebug("Clicker::cbCtrlShiftClicked(bool checked: %d", checked);
 
-    //dongle->sendCMD_SET_MODIFIER(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
     emit doSetModifier(ui->cbCtrl->isChecked(), ui->cbShift->isChecked());
     emit doActivateL2();
 }

@@ -56,6 +56,8 @@ static uint8_t  newKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 static uint8_t deviceState = 0;		/* DE device on/off state */
 
 static uint8_t DebugFlag = 0;	
+static uint8_t ShowRcvStat = 0;	
+void toggleShowRcvStat(void) {ShowRcvStat = 1 - ShowRcvStat;};
 
 
 void setDebugFlag(int8_t state) {	DebugFlag = state;};
@@ -289,7 +291,13 @@ void led_indicator_task(uint16_t time_delta)
 				toggleCounter = 0;
 			}
 		} else {
-			LEDs_TurnOnLEDs(LEDS_LED1);
+		
+			if(ShowRcvStat == 0){
+				LEDs_TurnOffLEDs(LEDS_LED1);
+			} else {
+		
+				LEDs_TurnOnLEDs(LEDS_LED1);
+			}
 		}
 	}	
 	
@@ -552,6 +560,7 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 		if(Service == SERVICE_CONFIG){
 			uint8_t Command = RawReport[1];	
 			uint16_t tmp;;
+			
 //			if(tmp > 1500) LEDs_TurnOnLEDs(LEDS_LED1);
 
 			switch(Command){
@@ -581,6 +590,7 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 					List_Delete_All();
 					break;
 				case CMD_SET_HPCPMP:
+					toggleShowRcvStat();
 					// mobhp,  hp,  cp,  mp,  vp,  mobmp
 					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
 					break;
@@ -590,12 +600,32 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 					//} else {
 					//	DebugFlag = 0;
 					//}
+					toggleShowRcvStat();
 					set_TargetState(RawReport[2], // Target type, 
 									RawReport[3],   // Star State
 									RawReport[4],   // Skill State
 									RawReport[5],   // Skill State2
 									RawReport[6],   // Skill State3
 									RawReport[7]   // Skill State4
+									
+									); // Target type, Star State
+					break;
+				case CMD_SET_SKILL_STATE:
+					//if(RawReport[4] == 32) {
+					//	DebugFlag = 1;
+					//} else {
+					//	DebugFlag = 0;
+					//}
+					// Set state of 6 x 8 = 48 skills
+					
+					toggleShowRcvStat(); 
+
+					set_SkillState(RawReport[2],    // Skill State1 
+									RawReport[3],   // Skill State2
+									RawReport[4],   // Skill State3
+									RawReport[5],   // Skill State4
+									RawReport[6],   // Skill State5
+									RawReport[7]    // Skill State6
 									
 									); // Target type, Star State
 					break;
@@ -614,16 +644,16 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 								RawReport[5]);  // Condition StarState							
 						}
 					} else if(RawReport[3] == CheckSkillType) {
-						if( RawReport[4] > 31){
-							List_Delete_Condition(
-								RawReport[2],    //Key Code
-								RawReport[3]);   // Condition Type
-						} else {
+						if( RawReport[4] < MAXCONDITIONAMOUNT){
 							List_Update_Condition(
 								RawReport[2],   //Key Code
 								RawReport[3],   // Condition Type
 								RawReport[4],   // Skill index
 								RawReport[5]);  // Unused							
+						} else {						
+							List_Delete_Condition(
+								RawReport[2],    //Key Code
+								RawReport[3]);   // Condition Type						
 						}
 					} else {
 						if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||

@@ -1,11 +1,5 @@
 #include "l2window.h"
-/*
-char* L2Window::DefaultKeyDB[48] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8","F9","F10","F11",                   "F12",
-                                    "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8", "9", "0",  "-",                     "=",
-                                    "Q",  "W",  "E",  "R",  "T",  "Y",  "U",  "I", "O", "P",  "[",                     "]",
-                                    "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8","P9","P0", "KEYPAD_DOT_AND_DELETE", "KEYPAD_SLASH"};
 
-*/
 
 L2Window::L2Window(HWND winhwnd)
 {
@@ -14,6 +8,8 @@ L2Window::L2Window(HWND winhwnd)
     image_height = 0;
     L2icon = NULL;
     bStar = false;
+    bPet = false;
+    bPetDetected = true;
 
     mainleft.load("patterns\\main_left.bmp");
     mainright.load("patterns\\main_right.bmp");
@@ -21,7 +17,12 @@ L2Window::L2Window(HWND winhwnd)
     mobright_o.load("patterns\\mob_right_open.bmp");
     mobleft_c.load("patterns\\mob_left_close.bmp");
     mobright_c.load("patterns\\mob_right_close.bmp");
+    mobhp.load("patterns\\mobhp.bmp");
+    mobmp.load("patterns\\mobmp.bmp");
     star.load("patterns\\star.bmp");
+    petleft.load("patterns\\pet.bmp");
+
+
 
     //LOAD CONFIG BB.ini
     QSettings sett("bb.ini", QSettings::IniFormat);
@@ -42,7 +43,9 @@ L2Window::L2Window(HWND winhwnd)
     for(int i = idCP; i < BARNUM; i++ ){
         bar[i].setbarID(i);
     }
-
+    for(int i = 0; i < KEYNUM; i++ ){
+        skillrdy[i] = false;
+    }
     KeyConditionsSet* conditionSet = new KeyConditionsSet();
     cond_set_list.append(conditionSet);
     project_file_name = "default.bbproj";
@@ -50,6 +53,53 @@ L2Window::L2Window(HWND winhwnd)
 
 
 
+}
+
+bool L2Window::isSkillRdy(int num){
+
+    KeyCondition* cond = this->getCurrentSettings()->condition[num];
+    bool dbg = false;
+    //if(strcmp("ESCAPE", cond->KeyString.toStdString().c_str()) == 0) dbg = true;
+
+    if(dbg) qDebug("bool L2Window::isSkillRdy(int num): num= %d %s", num,  cond->KeyString.toStdString().c_str());
+    if(dbg) qDebug("cond->FSet= %d", cond->FSet);
+    if(!cond->FSet) return false;
+
+    if(dbg) qDebug("getConditionSkill(num) %d  skillrdy[num] %d", getConditionSkill(num), skillrdy[num]);
+    if(getConditionSkill(num)) if(!skillrdy[num]) return false;
+
+    if(dbg) qDebug("cond->checkTargetCondition(this->getTargetType()) %d  getTargetType() %d", cond->checkTargetCondition(this->getTargetType()), getTargetType());
+    if(!cond->checkTargetCondition(this->getTargetType())){return false;}// Target Condition
+
+
+    if(dbg) qDebug("cond->checkStarCondition(this->getStarState()) %d  getStarState() %d", cond->checkStarCondition(this->getStarState()), getStarState());
+    if(!cond->checkStarCondition(this->getStarState())){return false;}// Star Condition
+
+    for(int barnum = 0; barnum < BARNUM; barnum++){
+        if(dbg) qDebug("cond->checkBarCondition(barnum, bar[barnum].getXP(), getTargetType()) %d  barnum %d bar[barnum].getXP() %d getTargetType() %d", cond->checkBarCondition(barnum, bar[barnum].getXP(), getTargetType()), barnum, bar[barnum].getXP(), getTargetType());
+        if(!cond->checkBarCondition(barnum, bar[barnum].getXP(), getTargetType())) return false;
+    }
+
+    /*
+    bool group_cond = false;
+    for(int i = 0; i < GROUPSNUM; i++){
+        if(cond->getGroupState(i) && getGroupState(i)) {
+            group_cond = true;
+            //break;
+        }
+    }
+    if(!group_cond) return false;
+    */
+
+    if(cond->getConditionB(idCheckPet)) if (cond->getConditionB(idPetState) != bPet) return false;
+    for(int i = 0; i < idNoUseSkillNum; i++){
+        if(cond->getConditionB(idNoUseSkillState+i) != false){
+           if(skillrdy[i]) return false;
+        }
+    }
+    if(dbg) qDebug("Return true: bool L2Window::isSkillRdy(int num)");
+
+    return true;
 }
 
 QImage L2Window::capture(){
@@ -270,7 +320,7 @@ QPoint L2Window::findPattern(QImage source, QPoint topleft, QPoint bottomright, 
                         count_total++;
                         //qDebug("Read frame");
                          QRgb image_pix = source.pixel(QPoint(im_w+w, im_h+h));
-                         bool res = XPBar::CompareColors(frame_pix,image_pix, 5);
+                         bool res = XPBar::CompareColors(frame_pix,image_pix, 5, false);
                          count_match += res;
                     }
                     if(count_total - count_match >= delta) break;
@@ -278,16 +328,18 @@ QPoint L2Window::findPattern(QImage source, QPoint topleft, QPoint bottomright, 
                 if(count_total - count_match >= delta) break;
             }
            // qDebug("%d %d findPattern = %d", im_w, im_h, count_total - count_match);
+
             if(count_total - count_match < delta){
+                /*
                 for(int w = 0; w < pattern.width();w++){
                     for(int h = 0; h < pattern.height();h++){
 
                         source.setPixel(im_w+w, im_h+h, qRgb(128, 128, 128));
                     }
                 }
-             //   source.save("source.png");
+                source.save("source.png");
+                */
                 return(QPoint(im_w, im_h));
-
             }
         }
     }
@@ -317,14 +369,15 @@ int L2Window::check(){
         image_height = image.height();
     }
 
-    invalidmain = (maintopleft.rx()< 0 || maintopright.rx()< 0 );
-    invalidmob  = (mobtopleft.rx()<0 || mobtopright.rx()< 0 );
+    invalidmain = INVALIDMAIN;
+    invalidmob  = INVALIDMOB;
 
     if(maintopleft.rx()<0){
         maintopleft = findPattern(image, QPoint(0, 0), QPoint(20,50), mainleft, 5);
         qDebug("maintopleft %d %d", maintopleft.rx(), maintopleft.ry());
         //image.save("image.png");
         if(maintopleft.rx()>0){
+            /*
             QImage tmp = image.copy(maintopleft.rx(), maintopleft.ry(), mainleft.width(), mainleft.height());
             for(int x = 0; x < mainleft.width(); x++){
                 for(int y = 0; y < mainleft.height(); y++){
@@ -342,12 +395,14 @@ int L2Window::check(){
                 }
             }
             tmp.save("mainleft_new.png");
+            */
         }
     }
     if(maintopright.rx()<0){
         maintopright = findPattern(image, QPoint(maintopleft.rx()+50, maintopleft.ry()-10), QPoint(maintopleft.rx()+390, maintopleft.ry()+10), mainright, 5);
         qDebug("maintopright %d %d", maintopright.rx(), maintopright.ry());
         if(maintopright.rx()>0){
+            /*
             QImage tmp = image.copy(maintopright.rx(), maintopright.ry(), mainright.width(), mainright.height());
             for(int x = 0; x < mainright.width(); x++){
                 for(int y = 0; y < mainright.height(); y++){
@@ -365,6 +420,7 @@ int L2Window::check(){
                 }
             }
             tmp.save("mainright_new.png");
+            */
         }
     }
 #define TOOLLOFFSET 38
@@ -387,14 +443,14 @@ int L2Window::check(){
                 for(int l=0;l<3;l++){
                     for(int m=0;m<4;m++){
 
-                        QString fname;
-                        QTextStream varstream(&fname);
-                        fname = "tool";
-                        varstream  <<(4-k)*12+l*4 + m << ".png";
+                        //QString fname;
+                        //QTextStream varstream(&fname);
+                        //fname = "tool";
+                        //varstream  <<(4-k)*12+l*4 + m << ".png";
                         // 1 1
                         int sell_x = TOOLLOFFSET + (l*4 + m)*TOOLSELL + (l*4 + m)*TOOLHGAP + l*TOOLH2GAP;
                         int sell_y = TOOLTOFFSET + k*TOOLSELL + k*TOOLVGAP;
-                        qDebug("sell %s %d %d", fname.toStdString().c_str(), sell_x, sell_y);
+                        //qDebug("sell %s %d %d", fname.toStdString().c_str(), sell_x, sell_y);
 
                         tool[(4-k)*12+l*4 + m]=image.copy(toolbartopleft.rx()+sell_x, toolbartopleft.ry()+sell_y, TOOLSELL, TOOLSELL);
                         //tool[(4-k)*12+l*4 + m].save(fname);
@@ -420,6 +476,8 @@ int L2Window::check(){
                 bar[i].xEnd = maintopright.rx()-2;
                 bar[i].yXP = maintopleft.ry()+27+(i-idCP)*13+5;
                 bar[i].setStatus(true);
+                bar[i].patternMethod = false;
+
             }
         }
         if(mobtopleft.rx()<0 && (mobdetectcounter++ > 20)){
@@ -429,6 +487,7 @@ int L2Window::check(){
                 mobtopleft = findPattern(image, QPoint(maintopright.rx(), 0), QPoint(image_width/2,50), mobleft_o, 5);
                 qDebug("mobtopleft open %d %d", mobtopleft.rx(), mobtopleft.ry());
                 if(mobtopleft.rx()>0){
+                    /*
                     QImage tmp = image.copy(mobtopleft.rx(), mobtopleft.ry(), mobleft_o.width(), mobleft_o.height());
                     for(int x = 0; x < mobleft_o.width(); x++){
                         for(int y = 0; y < mobleft_o.height(); y++){
@@ -443,9 +502,11 @@ int L2Window::check(){
                         }
                     }
                     tmp.save("mobleft_o_new.png");
+                    */
                 }
             } else {
                 if(mobtopleft.rx()>0){
+                    /*
                     QImage tmp = image.copy(mobtopleft.rx(), mobtopleft.ry(), mobleft_c.width(), mobleft_c.height());
                     for(int x = 0; x < mobleft_c.width(); x++){
                         for(int y = 0; y < mobleft_c.height(); y++){
@@ -460,17 +521,19 @@ int L2Window::check(){
                         }
                     }
                     tmp.save("mobleft_c_new.png");
+                    */
                 }
                 qDebug("mobtopleft close %d %d", mobtopleft.rx(), mobtopleft.ry());
             }
         }
 
         if(mobtopright.rx()<0 && mobtopleft.rx()>0){
-            mobtopright = findPattern(image, QPoint(mobtopleft.rx()+160, mobtopleft.ry()-1), QPoint(mobtopleft.rx()+390, mobtopleft.ry()+1), mobright_c, 5);
+            mobtopright = findPattern(image, QPoint(mobtopleft.rx()+140, mobtopleft.ry()-1), QPoint(mobtopleft.rx()+410, mobtopleft.ry()+1), mobright_c, 5);
             if(mobtopright.rx()<0 ){
-                mobtopright = findPattern(image, QPoint(mobtopleft.rx()+160, mobtopleft.ry()-1), QPoint(mobtopleft.rx()+390, mobtopleft.ry()+1), mobright_o, 5);
+                mobtopright = findPattern(image, QPoint(mobtopleft.rx()+140, mobtopleft.ry()-1), QPoint(mobtopleft.rx()+410, mobtopleft.ry()+1), mobright_o, 5);
                 qDebug("mobtopright open %d %d", mobtopright.rx(), mobtopright.ry());
                 if(mobtopright.rx()>0){
+                    /*
                     QImage tmp = image.copy(mobtopright.rx(), mobtopright.ry(), mobright_o.width(), mobright_o.height());
                     for(int x = 0; x < mobright_o.width(); x++){
                         for(int y = 0; y < mobright_o.height(); y++){
@@ -485,10 +548,12 @@ int L2Window::check(){
                         }
                     }
                     tmp.save("mobright_o_new.png");
+                    */
                 }
             } else {
                 qDebug("mobtopright close %d %d", mobtopright.rx(), mobtopright.ry());
                 if(mobtopright.rx()>0){
+                    /*
                     QImage tmp = image.copy(mobtopright.rx(), mobtopright.ry(), mobright_c.width(), mobright_c.height());
                     for(int x = 0; x < mobright_c.width(); x++){
                         for(int y = 0; y < mobright_c.height(); y++){
@@ -503,20 +568,61 @@ int L2Window::check(){
                         }
                     }
                     tmp.save("mobright_c_new.png");
+                    */
                 }
 
             }
         }
+
+
+
+        if(pettopleft.rx()<0 && (petdetectcounter++ > 20) && (bPetDetected)){
+            petdetectcounter = 0;
+            pettopleft = findPattern(image, QPoint(image_width/2, image_height/2), QPoint(image_width,image_height*3/4), petleft, 5);
+            if(pettopleft.rx()<0 ){
+                    /*
+                    QImage tmp = image.copy(pettopleft.rx(), pettopleft.ry(), petleft.width(), petleft.height());
+                    for(int x = 0; x < petleft.width(); x++){
+                        for(int y = 0; y < petleft.height(); y++){
+                            QRgb current_pix = tmp.pixel(QPoint(x, y));
+                            QRgb pattern_pix = petleft.pixel(QPoint(x, y));
+                            QColor ct(pattern_pix);
+                            if(!(ct.red() == 255 && ct.green()==255 && ct.blue() == 255)){
+                                if(current_pix != pattern_pix){
+                                    tmp.setPixel(x, y, RGB(0,255,0));
+                                }
+                            }
+                        }
+                    }
+                    tmp.save("petleft_new.png");
+                    */
+            }
+        }
+
+
+
+
 
         if(mobtopleft.rx()>0 && mobtopright.rx()>0 ){
             //QImage mobbar = image.copy(mobtopleft.rx(), mobtopleft.ry(), mobtopright.rx() - mobtopleft.rx(), mobleft.height());
             //mobbar.save("mobbar.png");
             if(invalidmob){
                 for(int i = idMobHP; i <= idMobMP; i++ ){
+                    bar[i].patternMethod = true;
                     bar[i].xBegin = mobtopleft.rx()+20;
                     bar[i].xEnd = mobtopright.rx()+11;
-                    bar[i].yXP = mobtopleft.ry()+28+(i-idMobHP)*8;
+                    if(bar[i].patternMethod){
+                        bar[i].yXP = mobtopleft.ry()+26+(i-idMobHP)*8;
+                    } else {
+                        bar[i].yXP = mobtopleft.ry()+28+(i-idMobHP)*8;
+                    }
                     bar[i].setStatus(true);
+
+                    if(i == idMobHP) {
+                        bar[i].barpattern = mobhp;
+                    } else {
+                        bar[i].barpattern = mobmp;
+                    }
                 }
             }
             if((startopleft.rx()<0 && (stardetectcounter++ < 20))  || invalidmain||invalidmob){
@@ -524,6 +630,7 @@ int L2Window::check(){
                 startopleft = findPattern(image, QPoint(bar[idMobHP].getBegin(), bar[idMobHP].getY()-23), QPoint(bar[idMobHP].getBegin()+20, bar[idMobHP].getY()-5), star, 5);
                 qDebug("startopleft %d %d", startopleft.rx(), startopleft.ry());
                 if(startopleft.rx()>0){
+                    /*
                     QImage tmp = image.copy(startopleft.rx(), startopleft.ry(), star.width(), star.height());
                     for(int x = 0; x < star.width(); x++){
                         for(int y = 0; y < star.height(); y++){
@@ -538,6 +645,7 @@ int L2Window::check(){
                         }
                     }
                     tmp.save("star_new.png");
+                    */
                 }
             }
         }
@@ -545,42 +653,21 @@ int L2Window::check(){
     }
 
     status = L2_ON;
-    if(!INVALIDMAIN && !done && false){
-
-        QImage frames=image.copy(0, 0, image.width(), image.height());
-
-        for(int i=maintopleft.rx();i<maintopright.rx();i++){
-                 //frames.setPixel(i, maintopleft.ry, qRgb(255, 0, 0));
-        }
-        for(int j = idCP; j <= idVP; j++ ){
-            for(int i=bar[j].getBegin();i<bar[j].getEnd();i++){
-                     frames.setPixel(i, bar[j].getY(), qRgb(128, 128, 128));
-            }
-        }
-        if(!INVALIDMOB){
-            for(int i=mobtopleft.rx();i<mobtopright.rx();i++){
-                     //frames.setPixel(i, mobtopleft.ry, qRgb(0, 255, 0));
-            }
-
-            for(int j = idMobHP; j <= idMobMP; j++ ){
-                for(int i=bar[j].getBegin();i<bar[j].getEnd();i++){
-                         frames.setPixel(i, bar[j].getY(), qRgb(128, 128, 128));
-                }
-            }
-        }
-        frames.save("frames.png");
-        done = TRUE;
-    }
 
 
+    bPet =  XPBar::checkPattern(pettopleft, &image, &petleft,10, 3, 5);
 
     //QImage barimg=image.copy(bar[idCP].getBegin(), bar[idCP].getY(), bar[idCP].getEnd()-bar[idCP].getBegin(), 1);
     //barimg.save("CP.png");
-
-    for(int i = idCP; i < BARNUM; i++ ){
+    for(int i = idCP; i < idMobHP; i++ ){
         bar[i].checkXPBar(image);
     }
-
+    bar[idMobHP].checkXPBar(image);
+    if(bar[idMobHP].getXP() != XP_ERR) {
+        bar[idMobMP].checkXPBar(image);
+    } else {
+        bar[idMobMP].setXP(XP_ERR);
+    }
     if(bar[idMobMP].getXP() != XP_ERR) {
         targettype = TARGETMEORPET;
     } else if(bar[idMobHP].getXP() != XP_ERR){
@@ -602,6 +689,7 @@ int L2Window::check(){
         //targettype = p.rx() ;
     }
 
+
     if(startopleft.rx() > 0 && ((targettype == TARGETCHAR)||(targettype == TARGETMOB))){
         QImage icotmp2=image.copy(startopleft.rx()+3, startopleft.ry()+4, 6, 6);
      //   icotmp2.save("icotmp2.png");
@@ -620,10 +708,23 @@ int L2Window::check(){
         c2.setRgb(qRgb(128, 128, 128));
         bStar = false;
     }
-
+/*
     for(int i = 0; i < KEYNUM; i++){
+        for(int k=1;k<5;k++){
+            for(int l=0;l<3;l++){
+                for(int m=0;m<4;m++){
+                    if(getConditionSkill((4-k)*12+l*4 + m) && getConditionState((4-k)*12+l*4 + m)){
+                        int sell_x = TOOLLOFFSET + (l*4 + m)*TOOLSELL + (l*4 + m)*TOOLHGAP + l*TOOLH2GAP;
+                        int sell_y = TOOLTOFFSET + k*TOOLSELL + k*TOOLVGAP;
+                        skillrdy[(4-k)*12+l*4 + m] = XPBar::checkPattern(QPoint(toolbartopleft.rx()+sell_x,toolbartopleft.ry()+sell_y), &image, &tool[(4-k)*12+l*4 + m],8, 1, 5);
+                    }
+                }
+            }
+        }
+*/
 
         if((toolbartopleft.rx()>0 && toolbartopleft.ry()> 0 )) {
+
 
 
             //image.save("image.png");
@@ -645,10 +746,10 @@ int L2Window::check(){
 
                             bool something_is_not_the_same=false;
 
-                            for(int i=0; i<TOOLSELL; i += 8)
+                            for(int i=TOOLSELL/2-2; i<TOOLSELL/2; i ++)
                             {
                                 if(something_is_not_the_same) break;
-                                for(int j=0; j<TOOLSELL; j += 8)
+                                for(int j=0; j<2; j ++)
                                 {
                                     if(QColor(tool[(4-k)*12+l*4 + m].pixel(i,j)).name()!=QColor(image.pixel(toolbartopleft.rx()+sell_x+i,toolbartopleft.ry()+sell_y+j)).name())
                                     {
@@ -664,7 +765,7 @@ int L2Window::check(){
             }
         }
 
-    }
+
 
 
 
@@ -674,7 +775,85 @@ int L2Window::check(){
 
 int L2Window::getStatus(){return status;}
 
+void L2Window::getBarStatistic(){
+QFile* statFile = new QFile("barstat.log");
+
+if(!statFile->open(QFile::WriteOnly)) return;
+QTextStream* stStream = new QTextStream(statFile);
+
+#ifdef Q_WS_WIN
+stStream->setCodec("Windows-1251");
+// Под остальными ОС - utf8
+#else
+stStream->setCodec("utf-8");
+#endif
+
+// Запись заголовка с информацией о запуске
+if(stStream && stStream->device())
+{
+    *stStream << "str" << ";" << "x"  << ";" << "y" << ";" << "pix.red" << ";" << "pix.green" << ";" << "pix.blue" << "\r\n";
+
+    const char* f_name[4] = {
+        "patterns\\mobbarex_hp0",
+        "patterns\\mobbarex_hp1",
+        "patterns\\mobbarex_mp0",
+        "patterns\\mobbarex_mp1"};
+
+        for(int i = 0; i < 4; i++){
+            QString label;
+            QTextStream str(&label);
+            label = "";
+            str << f_name[i]<<".bmp";
+            QImage im;
+            im.load(label.toStdString().c_str());
+            for(int y = 0; y<im.height();y++){
+                for(int x = 0; x < im.width(); x++){
+                    QColor pix = im.pixelColor(QPoint(x,y));
+                    *stStream << label << ";" << x  << ";" << y << ";" << pix.red() << ";" << pix.green() << ";" <<pix.blue() << "\r\n";
+                }
+            }
+        }
+        *stStream << "str" << ";" << "x"  << ";" << "y" << ";" << "pix.red" << ";" << "pix.green" << ";" << "pix.blue" << "\r\n";
+
+    }
+    statFile->close();
+    QImage *pattern = new QImage(4,5, QImage::Format_ARGB32);
+
+        //  patterns\mobbarex_hp1.bmp
+    pattern->setPixelColor( 1, 0, QColor(139, 98, 96));
+    pattern->setPixelColor(1, 1, QColor(128, 70, 68));
+    pattern->setPixelColor(1, 2, QColor(111, 23, 20));
+    pattern->setPixelColor(1, 3, QColor(136, 29, 24));
+    pattern->setPixelColor( 1, 4, QColor(171, 48, 34));
+    // patterns\mobbarex_hp0.bmp
+    pattern->setPixelColor( 0, 0, QColor(68, 60, 59));
+    pattern->setPixelColor( 0, 1, QColor(60, 47, 46));
+    pattern->setPixelColor( 0, 2, QColor(46, 27, 25));
+    pattern->setPixelColor(0, 3, QColor(55, 31, 29));
+    pattern->setPixelColor( 0, 4, QColor(65, 36, 34));
+    pattern->save("mobhp.bmp");
+        // patterns\mobbarex_mp1.bmp
+    pattern->setPixelColor( 3, 0, QColor(90, 117, 149));
+    pattern->setPixelColor( 3, 1, QColor(59, 97, 141));
+    pattern->setPixelColor( 3, 2, QColor(6, 64, 130));
+    pattern->setPixelColor( 3, 3, QColor(7, 76, 157));
+    pattern->setPixelColor( 3, 4, QColor(26, 92, 186));
+    // patterns\mobbarex_mp0.bmp
+    pattern->setPixelColor( 2, 0, QColor(58, 66, 76));
+    pattern->setPixelColor( 2, 1, QColor(45, 56, 69));
+    pattern->setPixelColor( 2, 2, QColor(23, 39, 59));
+    pattern->setPixelColor(  2, 3, QColor(26, 45, 69));
+    pattern->setPixelColor( 2, 4, QColor(37, 54, 82));
+    pattern->save("mobmp.bmp");
+
+}
+
+
+
 void L2Window::resetBars(){
+
+
+    if(false) getBarStatistic();
     for(int i = idCP; i < BARNUM; i++ ){
         bar[i].setStatus(false);
     }
@@ -684,9 +863,11 @@ void L2Window::resetBars(){
     mobtopright = QPoint(-1, -1);
     startopleft = QPoint(-1, -1);
     toolbartopleft  = QPoint(-1, -1);
+    pettopleft  = QPoint(-1, -1);
     mobdetectcounter = 0;
     stardetectcounter = 0;
     tooldetectcounter = 0;
+    petdetectcounter = 0;
 
     status = L2_OFF;
     bStar = false;

@@ -77,7 +77,7 @@ private:
 
 public slots:
     void showDongleStatus(unsigned char d_stt, int updatetime); /* */
-    void showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus);
+    void showParserStatus(int updatetime,  bool mainleftstatus, bool mainrightstatus, bool mobleftstatus,  bool mobrightstatus, bool toolbarstatus, bool getpetstatus, int target);
     void cbDongleClicked(bool checked);
     void cbCtrlShiftClicked(bool checked);
     void cbKeyEnableClicked(bool checked);

@@ -12,6 +12,7 @@
 #define TARGETCHAR      1
 #define TARGETMOB       2
 #define NOTARGET        3
+#define MAXCONDITIONAMOUNT 48
 
 //		enum Mode_t
 //		{
@@ -34,14 +35,16 @@
 				playerHP = 1, /** Player HP */
 				playerCP = 2, /** Player CP */
 				playerMP = 3, /** Player MP */
-				playerVP = 4, /** Player CP */
+				playerVP = 4, /** Player VP */
 				mobMP = 5, /** Player MP */
 				targetType = 6, /** Target Type */
 				starState = 7, /** Star State */
 				CheckSkillType = 8, /** Check Skill Rdy **/
 				CheckSkillType2 = 9, /** Check Skill Rdy **/
 				CheckSkillType3 = 10, /** Check Skill Rdy **/
-				CheckSkillType4 = 11 /** Check Skill Rdy **/
+				CheckSkillType4 = 11, /** Check Skill Rdy **/
+				CheckSkillType5 = 12, /** Check Skill Rdy **/
+				CheckSkillType6 = 13 /** Check Skill Rdy **/
 		};
 
 	/* Type Defines: */
@@ -89,6 +92,7 @@
 	void host_timeout_task(uint16_t time_delta);
 	void set_HPCPMP(uint8_t mobhp, uint8_t hp, uint8_t cp, uint8_t mp, uint8_t vp, uint8_t mobmp);
 	void set_TargetState(uint8_t targettype, uint8_t starstate, uint8_t skillstate, uint8_t skillstate2, uint8_t skillstate3, uint8_t skillstate4);
+	void set_SkillState(uint8_t skillstate1, uint8_t skillstate2, uint8_t skillstate3, uint8_t skillstate4, uint8_t skillstate5, uint8_t skillstate6);
 
 
 #endif

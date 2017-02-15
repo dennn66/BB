@@ -20,12 +20,14 @@ public:
 public slots:
    void process();
    void doActivateL2();
+   void setGroupState(int i, bool state);
+
 
 
 signals:
    void finished();
    void error(QString err);
-   void showParserStatus(int updatetime, bool mainstatus, bool mobstatus, bool toolbarstatus);
+   void showParserStatus(int updatetime, bool mainleftstatus, bool mainrightstatus, bool mobleftstatus,  bool mobrightstatus, bool toolbarstatus, bool petstatus, int target);
    void isL2Active(bool isActive, int right, int top);
 
 

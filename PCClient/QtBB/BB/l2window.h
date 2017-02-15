@@ -4,6 +4,8 @@
 #include <QtWinExtras/QtWin>
 #include <QImage>
 #include <QIcon>
+#include <QFile>
+#include <QTextCodec>
 #include <QTextStream>
 #include <QSettings>
 #include <QMessageBox>
@@ -18,11 +20,7 @@
 #define L2_OFF false
 #define L2_ON true
 
-#define TARGETMEORPET   0
-#define TARGETCHAR      1
-#define TARGETMOB       2
-#define NOTARGET        3
-#define TARGETSTATESNUM 4
+
 
 class L2Window
 {
@@ -56,11 +54,18 @@ public:
     bool isValidIndex(int index);
     bool activateSettings(int index);
     KeyConditionsSet* getCurrentSettings();
-    bool isSkillRdy(int num){return skillrdy[num];}
-    bool getConditionSkill(int index){return getCurrentSettings()->condition[index]->conditionb[idCheckSkillTimeout];}
-    bool getMainStatus(){return (maintopleft.rx() > 0);}
-    bool getMobStatus(){return (mobtopleft.rx() > 0);}
+    bool isSkillRdy(int num);
+    bool getConditionSkill(int index){return getCurrentSettings()->condition[index]->getConditionB(idCheckSkillTimeout);}
+    bool getMainLeftStatus(){return (maintopleft.rx() > 0);}
+    bool getMainRightStatus(){return (maintopright.rx() > 0);}
+    bool getMobLeftStatus(){return (mobtopleft.rx() > 0);}
+    bool getMobRightStatus(){return (mobtopright.rx() > 0);}
     bool getToolbarStatus(){return (toolbartopleft.rx() > 0);}
+    bool getPetStatus(){return (pettopleft.rx() > 0);}
+    int  getTargetType(){return targettype;}
+    bool getGroupState(int gr){return group_state[gr];}
+    void setGroupState(int gr, bool stt){group_state[gr] = stt;}
+    void getBarStatistic();
 
     //KeyCondition* condition[KEYNUM];
 
@@ -80,6 +85,7 @@ private:
     int image_width;
     int image_height;
     bool skillrdy[KEYNUM];
+    bool group_state[GROUPSNUM];
 
     QImage mainleft;
     QImage mainright;
@@ -103,12 +109,18 @@ private:
     QImage tool[KEYNUM];
     int tooldetectcounter;
 
+    QImage petleft;
+    QPoint pettopleft;
+    int petdetectcounter;
+    bool bPetDetected;
+    bool bPet;
+
+    QImage mobhp;
+    QImage mobmp;
+
     QPoint findPattern(QImage source, QPoint topleft, QPoint bottomright, QImage pattern, int delta);
 
-    //static char* DefaultKeyDB[KEYNUM];
-
     QImage capture();
-//    bool findXP(int index, QImage image);
     bool findCPHPMP(QImage image);
 
 signals:

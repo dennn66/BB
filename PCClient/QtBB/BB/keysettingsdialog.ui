@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>413</width>
-    <height>381</height>
+    <width>725</width>
+    <height>445</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>630</x>
      <y>10</y>
      <width>81</width>
      <height>71</height>
@@ -32,8 +32,8 @@
   <widget class="QLineEdit" name="leCoolDown">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>40</y>
+     <x>490</x>
+     <y>30</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -42,8 +42,8 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>40</y>
+     <x>380</x>
+     <y>30</y>
      <width>81</width>
      <height>16</height>
     </rect>
@@ -55,8 +55,8 @@
   <widget class="QLineEdit" name="lePause">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>60</y>
+     <x>490</x>
+     <y>50</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -68,8 +68,8 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>60</y>
+     <x>380</x>
+     <y>50</y>
      <width>81</width>
      <height>16</height>
     </rect>
@@ -81,8 +81,8 @@
   <widget class="QLineEdit" name="leCondition">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>80</y>
+     <x>490</x>
+     <y>70</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -94,8 +94,8 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>80</y>
+     <x>380</x>
+     <y>70</y>
      <width>81</width>
      <height>16</height>
     </rect>
@@ -109,7 +109,7 @@
     <rect>
      <x>30</x>
      <y>120</y>
-     <width>371</width>
+     <width>271</width>
      <height>16</height>
     </rect>
    </property>
@@ -148,7 +148,7 @@
     <rect>
      <x>100</x>
      <y>160</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -156,9 +156,9 @@
   <widget class="QLineEdit" name="leCPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>160</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -173,13 +173,13 @@
     </rect>
    </property>
    <property name="text">
-    <string>Min.% (0-100%)</string>
+    <string>Min.% (0-100)</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>210</x>
      <y>140</y>
      <width>91</width>
      <height>16</height>
@@ -207,7 +207,7 @@
     <rect>
      <x>100</x>
      <y>180</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -215,9 +215,9 @@
   <widget class="QLineEdit" name="leHPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>180</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -240,7 +240,7 @@
     <rect>
      <x>100</x>
      <y>200</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -248,9 +248,9 @@
   <widget class="QLineEdit" name="leMPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>200</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -273,7 +273,7 @@
     <rect>
      <x>100</x>
      <y>220</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -281,9 +281,9 @@
   <widget class="QLineEdit" name="leVPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>220</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -293,7 +293,7 @@
     <rect>
      <x>100</x>
      <y>270</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -303,7 +303,7 @@
     <rect>
      <x>100</x>
      <y>250</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -311,9 +311,9 @@
   <widget class="QLineEdit" name="leMobHPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>250</y>
-     <width>113</width>
+     <width>80</width>
      <height>20</height>
     </rect>
    </property>
@@ -347,9 +347,9 @@
   <widget class="QLineEdit" name="leMobMPMax">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>210</x>
      <y>270</y>
-     <width>113</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -380,7 +380,7 @@
   <widget class="QWidget" name="chkbox_widget_2" native="true">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>640</x>
      <y>130</y>
      <width>51</width>
      <height>161</height>
@@ -403,8 +403,8 @@
   <widget class="QCheckBox" name="cbShift">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>100</y>
+     <x>70</x>
+     <y>60</y>
      <width>83</width>
      <height>17</height>
     </rect>
@@ -416,9 +416,9 @@
   <widget class="QCheckBox" name="cbCtrl">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>80</y>
-     <width>172</width>
+     <x>70</x>
+     <y>40</y>
+     <width>91</width>
      <height>17</height>
     </rect>
    </property>
@@ -429,14 +429,14 @@
   <widget class="QCheckBox" name="cbCheckStar">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>300</y>
+     <x>310</x>
+     <y>130</y>
      <width>70</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>CheckStar</string>
+    <string>Check Star</string>
    </property>
   </widget>
   <widget class="Line" name="line_2">
@@ -444,7 +444,7 @@
     <rect>
      <x>30</x>
      <y>290</y>
-     <width>371</width>
+     <width>271</width>
      <height>16</height>
     </rect>
    </property>
@@ -455,10 +455,10 @@
   <widget class="QGroupBox" name="gbTargetType">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>300</y>
-     <width>261</width>
-     <height>80</height>
+     <x>490</x>
+     <y>110</y>
+     <width>131</width>
+     <height>181</height>
     </rect>
    </property>
    <property name="title">
@@ -468,21 +468,21 @@
   <widget class="QCheckBox" name="cbStarState">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>320</y>
+     <x>390</x>
+     <y>130</y>
      <width>70</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>StarState</string>
+    <string>Star State</string>
    </property>
   </widget>
   <widget class="QLabel" name="tool_label">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>50</y>
+     <x>30</x>
+     <y>40</y>
      <width>32</width>
      <height>32</height>
     </rect>
@@ -494,14 +494,209 @@
   <widget class="QCheckBox" name="cbCheckSkill">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>340</y>
+     <x>310</x>
+     <y>200</y>
+     <width>121</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Check Skill is Ready</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>120</y>
+     <width>161</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>110</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>State Conditions</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_4">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>120</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_15">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>110</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Group Conditions</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="cbCheckPet">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>160</y>
      <width>70</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>CheckSkill</string>
+    <string>Check Pet</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="cbPetState">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>160</y>
+     <width>70</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Pet State</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_6">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>290</y>
+     <width>161</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_7">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>290</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_5">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>10</y>
+     <width>261</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_16">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>0</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Time Conditions</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_8">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>90</y>
+     <width>261</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_9">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>290</y>
+     <width>121</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_10">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>120</y>
+     <width>111</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_17">
+   <property name="geometry">
+    <rect>
+     <x>255</x>
+     <y>305</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Dont use if ready:</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_11">
+   <property name="geometry">
+    <rect>
+     <x>255</x>
+     <y>315</y>
+     <width>466</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>

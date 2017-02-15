@@ -25,7 +25,9 @@ static uint8_t Params[] = {0xFF, //mobHP
 							0x00, //CheckSkillType
 							0x00, //CheckSkillType2
 							0x00, //CheckSkillType3
-							0x00};//CheckSkillType4
+							0x00, //CheckSkillType4
+							0x00, //CheckSkillType5
+							0x00};//CheckSkillType6
 
 
 //void set_spam_buttons_mode(uint8_t mode) {
@@ -45,6 +47,11 @@ void host_timeout_task(uint16_t time_delta)
 		Params[targetType] = NOTARGET;	
 		Params[starState]  = 0;
 		Params[CheckSkillType]  = 0;
+		Params[CheckSkillType2] = 0;
+		Params[CheckSkillType3] = 0;
+		Params[CheckSkillType4] = 0;
+		Params[CheckSkillType5] = 0;
+		Params[CheckSkillType6] = 0;	
 
 		UpdateCounter = UPDATETIMEOUT;
 		LEDs_TurnOffLEDs(LEDS_LED2);
@@ -70,6 +77,17 @@ void set_TargetState(uint8_t targettype, uint8_t starstate, uint8_t skillstate, 
 	Params[CheckSkillType2] = skillstate2;
 	Params[CheckSkillType3] = skillstate3;
 	Params[CheckSkillType4] = skillstate4;
+	UpdateCounter=0;
+}
+
+void set_SkillState(uint8_t skillstate, uint8_t skillstate2, uint8_t skillstate3, uint8_t skillstate4, uint8_t skillstate5, uint8_t skillstate6){
+	Params[CheckSkillType] = skillstate;
+	Params[CheckSkillType2] = skillstate2;
+	Params[CheckSkillType3] = skillstate3;
+	Params[CheckSkillType4] = skillstate4;
+	Params[CheckSkillType5] = skillstate5;
+	Params[CheckSkillType6] = skillstate6;	
+	
 	UpdateCounter=0;
 }
 
@@ -183,6 +201,7 @@ void List_Update_Condition(uint8_t KeyCode, uint8_t ctype, uint8_t cmin, uint8_t
 	Button_Task_Condition_t * Condition = 0;
 	
 	Condition = List_Add_Condition(KeyCode, ctype);
+	//if(ctype == CheckSkillType) setDebugFlag(1 );
 	if(Condition != 0){
 		Condition->Min = cmin;
 		Condition->Max =cmax; 
@@ -227,6 +246,7 @@ void List_Delete_All_Coditions(Button_Task_Scheduler_t * Button){
 uint8_t Check_All_Coditions(Button_Task_Scheduler_t * Button){	 
 	Button_Task_Condition_t * Condition = Button->condition;
 	if((((Button->flag&0b11110000) >> 4) &	((get_activeState()&0b00111100) >> 2)) == 0)   return 0; 	
+		
 	while(Condition !=0){
 		if(Condition->Type == targetType){
 			//  check target conditions			
@@ -241,10 +261,14 @@ uint8_t Check_All_Coditions(Button_Task_Scheduler_t * Button){
 			}			
 		} else if(Condition->Type == CheckSkillType){
 			//  check if skill is ready conditions
+				//setDebugFlag(1 );
 				uint8_t skillbit = Condition->Min;
-				uint8_t byte = skillbit >> 3;
-				uint8_t bit = skillbit - (byte << 3);
-				if(((Params[CheckSkillType+byte]) & (1<<bit)) == 0) return 0;
+				if(skillbit < MAXCONDITIONAMOUNT){
+					uint8_t byte = skillbit >> 3;
+					uint8_t bit = skillbit - (byte << 3);	
+					//if(CheckSkillType+byte == CheckSkillType6) setDebugFlag(1 );				
+					if(((Params[CheckSkillType+byte]) & (1<<bit)) == 0) return 0;
+				}
 		} else{
 		
 		    if(!((Condition->Type == mobHP) && (Params[targetType] != TARGETMOB))){

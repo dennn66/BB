@@ -45,9 +45,15 @@ void DongleWorker::stop() {
 
 void DongleWorker::setGroupState(int i,  bool state){
     qDebug("DongleWorker::setGroupState(int i,  bool state): n %d st %d", i, state);
-    unsigned char current_state = dongle->getDeviceState();
-    current_state = (state)? (current_state|(1 << (GROUP_0+i))): (current_state&(~(1 << (GROUP_0+i))));
-    dongle->setDeviceState(current_state);
+    unsigned char current_state;
+    if(i < 4){
+        current_state = dongle->getDeviceState();
+        current_state = (state)? (current_state|(1 << (GROUP_0+i))): (current_state&(~(1 << (GROUP_0+i))));
+        dongle->setDeviceState(current_state);
+    }
+    current_state = dongle->getGroupState();
+    current_state = (state)? (current_state|(1 << i)): (current_state&(~(1 << i)));
+    dongle->setGroupState(current_state);
 }
 
 void  DongleWorker::doSetState(bool stt){
