@@ -41,10 +41,9 @@
 		
 		#include <LUFA/Drivers/USB/USB.h>
 
-	#define GENERIC_REPORT_SIZE       8
 	
-	#define OUT_REPORT_SIZE       8
-	#define IN_REPORT_SIZE        1
+	#define OUT_REPORT_SIZE       18
+	#define IN_REPORT_SIZE        2
 
 	
 	/* Type Defines: */

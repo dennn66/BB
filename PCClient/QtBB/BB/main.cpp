@@ -1,4 +1,5 @@
 #include "boredombreaker.h"
+#include "clicker.h"
 #include "dongle.h"
 #include <QApplication>
 #include <QTextCodec>
@@ -54,21 +55,26 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
     #endif
 
-    installLog();
+    //LOAD CONFIG BB.ini
+    QSettings sett("bb.ini", QSettings::IniFormat);
+    bool bEnableDebug = sett.value("MAIN/EnableDebug", 1).toBool();
+
+    if(bEnableDebug) installLog();
 
     BoredomBreaker* bbwin = new BoredomBreaker;
 
-
     bbwin->show();
+    //QObject::connect(bbwin, SIGNAL(closeEvent()), &app, SLOT(quit()));
 
     int mainReturn = app.exec();
 
-    finishLog();
+    if(bEnableDebug) finishLog();
     return mainReturn;
 }
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg){
 
+    Q_UNUSED(context);
     //std::cout << msgType[type] << msg << std::endl;
     if(logStream && logStream->device())
     {

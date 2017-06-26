@@ -36,6 +36,13 @@
 
 #include "KeyboardMouseRaw.h"
 
+uint8_t Boot_Key ATTR_NO_INIT; //__attribute__ ((section (".noinit")))
+#define MAGIC_BOOT_KEY            0xCA
+
+#define BOOTLOADER_START_ADDRESS  0x3800 //((FLASH_SIZE_BYTES - BOOTLOADER_SEC_SIZE_BYTES) >> 1)
+void Bootloader_Jump_Check(void) ATTR_INIT_SECTION(3);
+
+
 /** Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver. */
 static uint8_t PrevKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 
@@ -53,10 +60,43 @@ static uint8_t  newKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
 
 /* EEPROM config */
 
-static uint8_t deviceState = 0;		/* DE device on/off state */
+static uint8_t deviceStatus = 0;		/* DE device on/off state */
 
-static uint8_t Modifier = 0;	
+		
+uint8_t get_deviceStatus(void) {return deviceStatus;};
+void set_deviceStatus(int8_t state) {deviceStatus = state;};
 
+uint8_t get_deviceState(void) {return deviceStatus& (1<<DEVICE_STATUS);};
+void set_deviceState(int8_t state) {
+	deviceStatus &= ~(1<<DEVICE_STATUS);
+	deviceStatus |= state&(1<<DEVICE_STATUS);
+};
+
+uint8_t get_modifierState(void) {return deviceStatus& ((1<<DEVICE_CTRL) | (1<<DEVICE_SHIFT));};
+void set_modifierState(int8_t state) {
+	deviceStatus &= ~((1<<DEVICE_CTRL) | (1<<DEVICE_SHIFT));
+	deviceStatus |= state&((1<<DEVICE_CTRL) | (1<<DEVICE_SHIFT));
+};
+
+
+uint8_t get_modeState(void) {return deviceStatus& (1<<DEVICE_MODE);};
+void set_modeState(int8_t state) {
+	deviceStatus &= ~(1<<DEVICE_MODE);
+	deviceStatus |= state&(1<<DEVICE_MODE);
+};
+
+
+
+static uint8_t groupsStatus = 0;		/* DE groups state */
+uint8_t get_groupsStatus(void) {return groupsStatus;};
+void set_groupsStatus(uint8_t groups) {groupsStatus = groups;};
+
+static uint8_t DebugFlag = 0;	
+static uint8_t ShowRcvStat = 0;	
+void toggleShowRcvStat(void) {ShowRcvStat = 1 - ShowRcvStat;};
+
+
+void setDebugFlag(int8_t state) {	DebugFlag = state;};
 
 #define TOGGLEIDLE 1000   /* DE period for push pull key ms */
 static uint16_t toggleCounter = 0;    		/* DE timer for push pull key*/
@@ -64,24 +104,6 @@ static uint16_t toggleCounter = 0;    		/* DE timer for push pull key*/
 static uint8_t expectKeyboardReport = 0;		/* flag to indicate if we expect an USB-report */
 static uint8_t expectMouseReport = 0;		/* flag to indicate if we expect an USB-report */
 
-
-uint8_t get_deviceState(void) {return deviceState& 0b00000001;};
-
-void set_deviceState(int8_t state) {
-	int8_t tmp = state&0b00000001;
-	deviceState &= 0b00111100;
-	deviceState |= tmp;
-};
-
-uint8_t get_activeState(void) {return deviceState& 0b00111100;};
-
-void set_activeState(int8_t group, int8_t state) {
-	if(state&0b00000001) {
-		deviceState |=  (1 << (group+2));
-	} else {
-	    deviceState &= ~(1 << (group+2));
-	}
-};
 
 uint8_t* get_newMouseHIDReportBuffer(void){return newMouseHIDReportBuffer;};
 uint8_t* get_newKeyboardHIDReportBuffer(void){return newKeyboardHIDReportBuffer;};
@@ -166,32 +188,44 @@ int main(void)
 {
 
 	static uint16_t last_led_timer = 0;
-	static uint16_t mouse_find_timer = 0;
 	static uint8_t prevButton1State = 0;		/* prev button1 state */
+	static uint8_t keycode = 0x68;		/* prev button1 state */
 
 	SetupHardware();
-
-	Modifier =	0;
-	//ReadConfig();
 	_delay_us(1000);
 	prevButton1State =  Buttons_GetStatus()& BUTTONS_BUTTON1;
 
 	LEDs_TurnOffLEDs(LEDS_ALL_LEDS);
-	
-	List_Add_Node(
-						32, 
-						0, 
-						10,
-						0,
-						0b00000000); //flag
+
+	if(Boot_Key == MAGIC_BOOT_KEY) {
+		for (int i = 0; i<10; i++){
+			LEDs_ToggleLEDs(LEDS_LED1);
+			Delay_MS(i*30);
+			LEDs_ToggleLEDs(LEDS_LED1);
+			Delay_MS(100);
+		}
+	}
 
 	GlobalInterruptEnable();
+	
 		
 	for (;;)
 	{			
 		uint8_t Button1State = Buttons_GetStatus();
 		if(prevButton1State > Button1State){
-			set_deviceState(1-get_deviceState());
+			//set_deviceState(1-get_deviceState());
+			// Create keyboard report 
+			if (expectKeyboardReport == 0) {	
+				USB_KeyboardReport_Data_t* newKeyboardReport = (USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer;
+				newKeyboardReport->KeyCode[0] = keycode++;
+				newKeyboardReport->KeyCode[1] = 0;
+				newKeyboardReport->KeyCode[2] = 0;
+				newKeyboardReport->KeyCode[3] = 0;
+				newKeyboardReport->KeyCode[4] = 0;
+				newKeyboardReport->KeyCode[5] = 0; //0x22 == "5";
+				newKeyboardReport->Modifier = 0;			
+				expectKeyboardReport = 1;
+			};
 		}
 		prevButton1State = Button1State;
 
@@ -199,12 +233,8 @@ int main(void)
 		ps2_mouse_task();		
 		led_indicator_task(timer_elapsed(last_led_timer));
 		host_timeout_task(timer_elapsed(last_led_timer));
-		spam_buttons_task(timer_elapsed(last_led_timer));
+		if(get_modeState() == 0) spam_buttons_task(timer_elapsed(last_led_timer));
 		last_led_timer = timer_read();
-		if(timer_elapsed(mouse_find_timer) > 5000) {
-			//find_mouse();
-			mouse_find_timer = timer_read();		
-		}
 		HID_Device_USBTask(&Keyboard_HID_Interface);
 		HID_Device_USBTask(&Mouse_HID_Interface);
 		HID_Device_USBTask(&Generic_HID_Interface);
@@ -212,12 +242,6 @@ int main(void)
 	}
 }
 
-#define USB_MOUSE_BTN_MASK      0x1F
-#define USB_MOUSE_BTN_LEFT      0
-#define USB_MOUSE_BTN_RIGHT     1
-#define USB_MOUSE_BTN_MIDDLE    2
-#define USB_MOUSE_BTN_4th       3
-#define USB_MOUSE_BTN_5th       4
 
 void PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
 
@@ -245,13 +269,13 @@ void PS2_to_USB_mouse_send(report_mouse_t *mouse_report){
     }
 	switch(mouse_report->buttons){
 		case (1 << USB_MOUSE_BTN_4th):
-			set_activeState(0, 1);
+			set_deviceState(1);
 			break;
 		case ((1 << USB_MOUSE_BTN_MIDDLE)|(1 << USB_MOUSE_BTN_LEFT)):
 			set_deviceState(1);
 			break;
 		case (1 << USB_MOUSE_BTN_5th):
-			set_activeState(0, 0);
+			set_deviceState(0);
 			break;
 		case ((1 << USB_MOUSE_BTN_MIDDLE)|(1 << USB_MOUSE_BTN_RIGHT)):
 			set_deviceState(0);
@@ -272,22 +296,34 @@ void led_indicator_task(uint16_t time_delta)
 	// Control device state LED
 	if(get_deviceState() == 0){
 		toggleCounter+=time_delta;
-		if(toggleCounter >= TOGGLEIDLE){
+		if(toggleCounter >= TOGGLEIDLE/5){
 			LEDs_ToggleLEDs(LEDS_LED1);
 			toggleCounter = 0;
 		}
 	} else {
-//		if(get_activeState() == 0){
-		if(Modifier > 0){
+		if(DebugFlag > 0){
 			toggleCounter+=time_delta;
-			if(toggleCounter >= TOGGLEIDLE/5){
+			if(toggleCounter >= TOGGLEIDLE/20){
+				LEDs_ToggleLEDs(LEDS_LED1);
+				toggleCounter = 0;
+			}
+		} else if(get_modeState() > 0){
+			toggleCounter+=time_delta;
+			if(toggleCounter >= TOGGLEIDLE/100){
 				LEDs_ToggleLEDs(LEDS_LED1);
 				toggleCounter = 0;
 			}
 		} else {
-			LEDs_TurnOnLEDs(LEDS_LED1);
+		
+			if(ShowRcvStat == 0){
+				LEDs_TurnOffLEDs(LEDS_LED1);
+			} else {
+		
+				LEDs_TurnOnLEDs(LEDS_LED1);
+			}
 		}
 	}	
+	
 }
 
 
@@ -350,32 +386,11 @@ void SetupHardware()
 void EVENT_USB_Device_Connect(void)
 {
 
-/*
-  //  LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
-  	// Start Millisecond Timer Interrupt 
-	TIMSK0  = (1 << OCIE0A);
-	TCCR0A = (1 << WGM01);  // Clear Timer on Compare (CTC)
-	
-#if (F_CPU == 8000000)
-//	TCCR0B = ((1 << CS01) | (1 << CS00));  // Clock/64
-	TCCR0B = (1 << CS02);  // Clock/256
-	OCR0A  = (F_CPU / 256 / 200); //200Hz
-#elif (F_CPU == 16000000)			
-	//TCCR0B = ((1 << CS01) | (1 << CS00));  // Clock/64
-	//TCCR0B = (1 << CS02);  // Clock/256
-
-	TCCR0B = ((1 << CS02) | (1 << CS00));  // Clock/1024
-	OCR0A  = (F_CPU / 1024 / 200); //200Hz	
-#else
-	#error Unsupported F_CPU	
-#endif
-*/
 }
 
 /** Event handler for the library USB Disconnection event. */
 void EVENT_USB_Device_Disconnect(void)
 {
- //   LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
  	/* Stop Millisecond Timer Interrupt */
 	TCCR0B = 0;
 
@@ -391,9 +406,6 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 	ConfigSuccess &= HID_Device_ConfigureEndpoints(&Generic_HID_Interface);
 
 	USB_Device_EnableSOFEvents();
-
-
-//	LEDs_SetAllLEDs(ConfigSuccess ? LEDMASK_USB_READY : LEDMASK_USB_ERROR);
 }
 
 /** Event handler for the library USB Control Request reception event. */
@@ -443,6 +455,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		// Create keyboard report 
 		if (expectKeyboardReport != 0) {	
 			if (get_deviceState() > 0) {
+				unsigned char Modifier = (get_modifierState()) >> DEVICE_CTRL;
 				KeyboardReport->Modifier = newKeyboardReport->Modifier | Modifier;
 			} else {
 				KeyboardReport->Modifier = 0;			
@@ -490,9 +503,18 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		LEDs_ToggleLEDs(LEDS_LED2);
 
 		/* Return status of device */
-		RawReport[0] = deviceState& 0b00111101;
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - NC
+		// 3 - NC
+		// 4 - NC
+		// 5 - NC
+		// 6 - Ctrl status
+		// 7 - Shift status
+		RawReport[0] = get_deviceStatus();
+		RawReport[1] = get_groupsStatus();
 
-		*ReportSize = 1;
+		*ReportSize = 2;
 		return true;
 	} 
 	return false;
@@ -533,26 +555,13 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 		*/
 	} else if(HIDInterfaceInfo == &Generic_HID_Interface) {
 		uint8_t *RawReport = (uint8_t*)ReportData;
-		uint8_t Service = RawReport[0];
+		uint8_t Service = RawReport[0];		
 		
-		if(Service == INTERFACE_ID_Keyboard){
+		if(Service == SERVICE_CONFIG){
 			uint8_t Command = RawReport[1];	
-			uint16_t tmp;;
-//			if(tmp > 1500) LEDs_TurnOnLEDs(LEDS_LED1);
-
 			switch(Command){
-				case CMD_WRITE_CONFIG:
-					break;
-				case CMD_READ_CONFIG:
-					break;
 				case CMD_ADD_NODE:
-					tmp  = 256*RawReport[5]+RawReport[4];
-					List_Add_Node(
-						RawReport[2], 
-						RawReport[3], 
-						tmp,
-						RawReport[6],
-						RawReport[7]);
+					List_Add_Node(RawReport+2); 
 					break;
 				case CMD_DELETE_NODE:
 					List_Delete_Node(RawReport[2]);
@@ -560,45 +569,98 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 				case CMD_DELETE_ALL:
 					List_Delete_All();
 					break;
-				case CMD_SET_MODIFIER:
-					Modifier = RawReport[2];
+				case CMD_SET_SKILL_STATE:
+					toggleShowRcvStat(); 
+					set_SkillState(RawReport+2); // 
 					break;
-				case CMD_SET_MODE:
-					set_spam_buttons_mode(RawReport[2]);
-					break;
-				case CMD_SET_HPCPMP:
-					// mobHP playerHP playerCP playerMP
-					set_HPCPMP(RawReport[2], RawReport[3], RawReport[4], RawReport[5], RawReport[6], RawReport[7]);
-					break;
-				case CMD_ADD_NODE_CONDITION:
-					if( ((RawReport[4] < 101) && (RawReport[5] < 101) && (RawReport[4] >= RawReport[5])) ||
-						((RawReport[4] > 100) && (RawReport[5] > 100))){
-						List_Delete_Condition(
-							RawReport[2],    //Key Code
-							RawReport[3]);   // Condition Type
-					} else {
-						List_Update_Condition(
-							RawReport[2],   //Key Code
-							RawReport[3],   // Condition Type
-							RawReport[4],   // Condition Min
-							RawReport[5]);  // Condition Max							
-					}
+				case CMD_JUMP_TO_BOOTLOADER:
+					Jump_To_Bootloader(); 
 					break;
 				default:
 					break;
 			}
-		} else if(Service == INTERFACE_ID_Mouse){
-			report_mouse_t* newMouseReport = (report_mouse_t*)newMouseHIDReportBuffer;
-			newMouseReport->x =	RawReport[1]-128;
-			newMouseReport->y =	RawReport[2]-128;
-			newMouseReport->buttons =	RawReport[3];
-			expectMouseReport = 1;		
-		}else if(Service == INTERFACE_ID_GenericHID){
-			deviceState =	RawReport[1];
+		} else if(Service == SERVICE_MOUSE){
+			if(get_modeState() > 0) {
+				report_mouse_t* newMouseReport = (report_mouse_t*)newMouseHIDReportBuffer;
+				newMouseReport->x =	RawReport[1]-128;
+				newMouseReport->y =	RawReport[2]-128;
+				newMouseReport->buttons =	RawReport[3];
+				expectMouseReport = 1;		
+			}
+		} else if(Service == SERVICE_DEVICE){
+		// Set device status
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - NC
+		// 3 - NC
+		// 4 - NC
+		// 5 - NC
+		// 6 - Ctrl state
+		// 7 - Shift state
+
+			set_deviceStatus(RawReport[1]);
+			set_groupsStatus(RawReport[2]);
+
 			expectMouseReport = 0;		
 			expectKeyboardReport = 0;
-		}
+		} else if(Service == SERVICE_KEYBOARD){					
+			if(get_modeState() > 0) {
+				USB_KeyboardReport_Data_t* newKeyboardReport = (USB_KeyboardReport_Data_t*)newKeyboardHIDReportBuffer;
+				newKeyboardReport->KeyCode[0] = RawReport[1];
+				newKeyboardReport->KeyCode[1] = RawReport[2];
+				newKeyboardReport->KeyCode[2] = RawReport[3];
+				newKeyboardReport->KeyCode[3] = RawReport[4];
+				newKeyboardReport->KeyCode[4] = RawReport[5];
+				newKeyboardReport->KeyCode[5] = RawReport[6]; //0x22 == "5";
+				newKeyboardReport->Modifier = RawReport[7];			
+				expectKeyboardReport = 1;
+			} 
+		}  
 		
 	}
 }
 
+
+// Entering the Bootloader via Software 
+
+void Bootloader_Jump_Check(void)
+{
+	Boot_Key = eeprom_read_byte((uint8_t*)CONFIG_HEADER_ADDRESS);
+	if ( (Boot_Key == MAGIC_BOOT_KEY))
+    {	
+        Boot_Key = 0;
+		eeprom_write_byte((uint8_t*)CONFIG_HEADER_ADDRESS, Boot_Key);
+		Boot_Key = MAGIC_BOOT_KEY;
+        ((void (*)(void))BOOTLOADER_START_ADDRESS)();
+    }
+}
+
+void Jump_To_Bootloader(void)
+{
+	wdt_disable();
+    // If USB is used, detach from the bus and reset it
+    USB_Disable();
+    // Disable all interrupts
+    cli();
+	LEDs_TurnOffLEDs(LEDS_LED1);
+    // Wait two seconds for the USB detachment to register on the host
+	for (int i = 0; i<10; i++){
+		LEDs_ToggleLEDs(LEDS_LED1);
+		Delay_MS(80);
+		LEDs_ToggleLEDs(LEDS_LED1);
+		Delay_MS(120);
+	}
+	LEDs_TurnOnLEDs(LEDS_LED1);
+	Delay_MS(300);
+	LEDs_TurnOffLEDs(LEDS_LED1);
+	Delay_MS(100);
+	
+    // Set the bootloader key to the magic value and force a reset
+    Boot_Key = MAGIC_BOOT_KEY;
+	eeprom_write_byte((uint8_t*)CONFIG_HEADER_ADDRESS, Boot_Key);
+    wdt_enable(WDTO_250MS);
+    for (;;){
+	    LEDs_ToggleLEDs(LEDS_LED1);
+		Delay_MS(30);
+	};
+}

@@ -22,6 +22,7 @@
 
 #include <windows.h>
 
+#define UNUSED(x) (void)(x)
 #ifndef _NTDEF_
 typedef LONG NTSTATUS;
 #endif
@@ -155,7 +156,7 @@ static hid_device *new_hid_device()
 static void register_error(hid_device *device, const char *op)
 {
 	WCHAR *ptr, *msg;
-
+    UNUSED(op);
 	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM |
 		FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -273,6 +274,7 @@ struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned shor
 	// Windows objects for interacting with the driver.
 	GUID InterfaceClassGuid = {0x4d1e55b2, 0xf16f, 0x11cf, {0x88, 0xcb, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30} };
 	SP_DEVINFO_DATA devinfo_data;
+    UNUSED(devinfo_data);
 	SP_DEVICE_INTERFACE_DATA device_interface_data;
 	SP_DEVICE_INTERFACE_DETAIL_DATA_A *device_interface_detail_data = NULL;
 	HDEVINFO device_info_set = INVALID_HANDLE_VALUE;

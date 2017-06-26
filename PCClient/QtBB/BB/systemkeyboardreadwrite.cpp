@@ -43,13 +43,27 @@ bool SystemKeyboardReadWrite::setConnected(bool state)
 {
     if(state && keyboardHook == NULL)
     {
-        keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProcedure, GetModuleHandle(NULL), 0);
+        try {
+            keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProcedure, GetModuleHandle(NULL), 0);
+
+        } catch(...) {
+            ;;
+            qDebug("SystemKeyboardReadWrite::SetWindowsHookEx failed\n");
+
+        }
 
         return keyboardHook;
     }
     else
     {
-        UnhookWindowsHookEx(keyboardHook);
+
+        try {
+            UnhookWindowsHookEx(keyboardHook);
+        } catch(...) {
+            ;;
+            qDebug("SystemKeyboardReadWrite::UnhookWindowsHookEx(keyboardHook) failed\n");
+
+        }
         keyboardHook = NULL;
 
         return keyboardHook;
@@ -59,5 +73,7 @@ bool SystemKeyboardReadWrite::setConnected(bool state)
 SystemKeyboardReadWrite* SystemKeyboardReadWrite::instance()
 {
     static SystemKeyboardReadWrite* pKeyboardReadWriteInstance = new SystemKeyboardReadWrite();
+    qDebug("SystemKeyboardReadWrite:::instance()\n");
+
     return pKeyboardReadWriteInstance;
 }

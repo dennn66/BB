@@ -21,7 +21,7 @@ public:
     int LoadConfig(QString file_name);
     int SaveConfig(QString file_name);
 private:
-    static char* DefaultKeyDB[KEYNUM];
+    static const char* DefaultKeyDB[KEYNUM];
 
 signals:
 

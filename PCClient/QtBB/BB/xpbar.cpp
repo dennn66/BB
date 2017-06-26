@@ -7,209 +7,393 @@ XPBar::XPBar()
     xBegin = 0;
     xEnd = 0;
     yXP=0;
+    patternMethod = false;
+
+    //LOAD CONFIG BB.ini
+    QSettings sett("bb.ini", QSettings::IniFormat);
+    bEnableBarSampling = sett.value("MAIN/EnableBarSampling", 0).toBool();
+
 
 }
 
-bool XPBar::findXPBar(QImage image,  RECT targetRect){
+XPBar::~XPBar()
+{
+    qDebug("XPBar::~XPBar");
 
-    RECT rect;
-    qDebug("XPBar::findXPBar %d", barID);
+    //statFile->close();
 
-    qDebug("%d il: %d ir: %d", barID, targetRect.left, targetRect.right);
-    qDebug("%d it: %d ib: %d", barID, targetRect.top, targetRect.bottom);
-    qDebug("%d w: %d h: %d", barID, image.width(), image.height());
-
-    rect.left = (targetRect.left <0)?0:targetRect.left;
-    rect.top = (targetRect.top <0)?0:targetRect.top;
-    rect.right = (targetRect.right>image.width())?image.width():targetRect.right;
-    rect.bottom = (targetRect.bottom > image.height())?image.height():targetRect.bottom;
-
-    qDebug("%d l: %d r: %d", barID, rect.left, rect.right);
-    qDebug("%d t: %d b: %d", barID, rect.top, rect.bottom);
-
-    if( rect.right <= rect.left || rect.bottom <= rect.top){
-        status = BAR_OFF;
-        XP = XP_ERR;
-        xBegin = 0;
-        xEnd = 0;
-        yXP=0;
-        return status;
-    }
-    xBegin = rect.left;
-    xEnd = rect.right;
-    yXP=0;
-
-    int max = 0;
-
-
-    QImage icotmp=image.copy(rect.left, rect.top, rect.right-rect.left,  rect.bottom-rect.top);
-    QString fn;
-    QTextStream(&fn)<< barcolor << ".png";
-    icotmp.save(fn);
-    qDebug(fn.toStdString().c_str());
-
-
-    for(int j=rect.top;j<rect.bottom;j++) {
-        int count = 0;
-        for(int i=rect.left;i<rect.right;i++){
-             QRgb pix = image.pixel(QPoint(i,j));
-//            qDebug("%d ->  : (y:%d x:%d)", barID, j,  i);
-
-            if(CompareColors(pix, barcolor, 5)|| CompareColors(pix, barbkclr, 5)) {
-               count++;
-            }
-        }
-        max = (count > max)? count:max;
-        yXP = (count == max)?j:yXP;
-    }
-//    qDebug("->  : (bar:%d yXP:%d barsize: %d)", barID,  yXP, max);
-
-    if(max < 100) {
-        xBegin = xEnd = yXP = 0;
-        status = BAR_OFF;
-        XP = XP_ERR;
-        qDebug("%d bar not found", barID);
-        return status;
-    }
-
-    int counter = 0;
-    int position = rect.left;
-    max = 0;
-
-    for(int j=rect.left;j<rect.right;j++) {
-        QRgb pix = image.pixel(QPoint(j,yXP));
-        if(CompareColors(pix, barcolor, 5)){
-            counter++;
-            max = (counter > max)? counter: max;
-            position = (counter == max)? j:position;
-//            if(barID == 1) qDebug("%d ->  : (j:%d ++, counter: %d)", barID, j, counter);
-        } else if(CompareColors(pix, barbkclr, 5)){
-            counter--;
-//            if(barID == 1) qDebug("%d ->  : (j:%d --, counter: %d)", barID, j, counter);
-            max = (counter > max)? counter: max;
-            position = (counter == max)? j:position;
-        }
-    }
-//    qDebug("-position:%d ", position);
-
-    xBegin = xEnd = position;
-
-    for(int i=position;i>=rect.left;i--){
-         QRgb pix = image.pixel(QPoint(i,yXP));
-        if(CompareColors(pix, barcolor, 5)) {
-           xBegin = i;
-        }
-    }
-//    qDebug("-xbegin:%d ", xBegin);
-
-    for(int i=position;i<=rect.right;i++){
-         QRgb pix = image.pixel(QPoint(i,yXP));
-        if(CompareColors(pix, barbkclr, 5)) {
-           xEnd = i;
-        }
-    }
-//    qDebug("-xend:%d ", xEnd);
-
-
-    if(     (xBegin < xEnd) &&
-            (xBegin > 0) &&
-            (xEnd < image.width()) &&
-            (yXP > 0) &&
-            (yXP < image.height())){
-        status = BAR_ON;
-    } else {
-        xBegin = xEnd = yXP = 0;
-        status = BAR_OFF;
-    }
-    XP = XP_ERR;
-    qDebug("%d ->  : xBegin:%d xEnd:%d yXP:%d ", barID, xBegin, xEnd, yXP);
-
-    return status;
 }
 
-
-bool XPBar::CompareColors(QRgb color1, QRgb color2, UINT8 delta)
+//Compare two colors with 'delta'
+bool XPBar::CompareColors(QRgb color1, QRgb color2, UINT8 delta, bool mode)
 {
     //qDebug("%d XPBar::CompareColors", barID);
     QColor c1(color1);
     QColor c2(color2);
+    if(mode) {
+        int deviation_h = (c1.hsvHue() > c2.hsvHue())? c1.hsvHue() - c2.hsvHue() : c2.hsvHue() - c1.hsvHue();
+        deviation_h = (deviation_h > 179)? 360 - deviation_h : deviation_h;
+        //qDebug("deviation_h: %d", deviation_h);
+        int deviation_s;
+        //qDebug("c1.hsvSaturation(): %d", c1.hsvSaturation());
+        //qDebug("c2.hsvSaturation(): %d", c2.hsvSaturation());
+        //qDebug("c1.hsvSaturation() > c2.hsvSaturation(): %d", c1.hsvSaturation() > c2.hsvSaturation());
 
-    int deviation_h = (c1.hsvHue() > c2.hsvHue())? c1.hsvHue() - c2.hsvHue() : c2.hsvHue() - c1.hsvHue();
-    deviation_h = (deviation_h > 179)? 360 - deviation_h : deviation_h;
-    //qDebug("deviation_h: %d", deviation_h);
-    int deviation_s;
-    //qDebug("c1.hsvSaturation(): %d", c1.hsvSaturation());
-    //qDebug("c2.hsvSaturation(): %d", c2.hsvSaturation());
-    //qDebug("c1.hsvSaturation() > c2.hsvSaturation(): %d", c1.hsvSaturation() > c2.hsvSaturation());
+        deviation_s = (c1.hsvSaturation() > c2.hsvSaturation())? c1.hsvSaturation() - c2.hsvSaturation() : c2.hsvSaturation() - c1.hsvSaturation();
+        //qDebug("deviation_s: %d", deviation_s);
 
-    deviation_s = (c1.hsvSaturation() > c2.hsvSaturation())? c1.hsvSaturation() - c2.hsvSaturation() : c2.hsvSaturation() - c1.hsvSaturation();
-    //qDebug("deviation_s: %d", deviation_s);
+        return (deviation_h < delta) && (deviation_s < delta);
+    } else {
+        int deviation_r = (c1.red() > c2.red())? c1.red() - c2.red() : c2.red() - c1.red();
+        int deviation_g = (c1.green() > c2.green())? c1.green() - c2.green() : c2.green() - c1.green();
+        int deviation_b = (c1.blue() > c2.blue())? c1.blue() - c2.blue() : c2.blue() - c1.blue();
 
-    return (deviation_h < delta) && (deviation_s < delta);
+        return (deviation_r <delta) && (deviation_g <delta) && (deviation_b <delta);
+    }
 }
 
+//Find pixel by color
 bool XPBar::findPixel(QImage image, int pix_num, UINT8 pixel_delta, QRgb color, UINT8 color_delta)
 {
     //qDebug("%d XPBar::findPixel", barID);
-    int startx = pix_num-pixel_delta;
-    int endx = pix_num+pixel_delta;
     int starty = yXP-pixel_delta;
     int endy=yXP+pixel_delta;
-    startx = (startx>0)?startx:0;
     starty = (starty>0)?starty:0;
-    //qDebug("startx: %d starty: %d", startx, starty);
 
     for(int row = starty; row < endy; row++){
-        for(int col = startx; col < endx; col++){
-            //qDebug("%d -> (col: %d row: %d)", barID, col, row);
-            QRgb pix = image.pixel(QPoint(col,row));
-            if(CompareColors(pix, color, color_delta)){
-                //qDebug("return true");
-                return true;
-            }
+        QRgb pix = image.pixel(QPoint(pix_num,row));
+        if(CompareColors(pix, color, color_delta)){
+            //qDebug("return true");
+            return true;
         }
     }
     //qDebug("return false");
     return false;
 }
 
+// Calculating XP for all bars
 bool XPBar::checkXPBar(QImage image){
     //qDebug("XPBar::checkXPBar");
-  int barsize = xEnd-xBegin;
-  int max = 0;
-  int position = xBegin;
-  int counter = 0;
-  int validator = 0;
-    if(status == BAR_OFF)  return(false);
+
+    if(status == BAR_OFF)  {
+        //qDebug("XPBar::checkXPBar bar %d is OFF", barID);
+        return(false);
+    }
     if(xEnd > image.width() || yXP > image.height()){
         status = BAR_OFF;
         return(false);
     }
-    for(int j=xBegin;j<xEnd;j++) {
-        if(findPixel(image, j, 2, barcolor, 5)){
+    status = BAR_ON;
+
+
+    if(patternMethod){
+
+        int leftmargin = xBegin;
+        int rightmargin = xEnd;
+        int pos = xBegin;
+        int postype  = checkXPPatternPartial(image, pos);
+        if(postype == 0){  // color
+            for(int safecounter = 0;  safecounter < 12; safecounter++){
+                if(postype == 0){
+                    leftmargin = pos;
+                    pos = leftmargin + ((rightmargin - leftmargin - 1)*qrand())/RAND_MAX;
+                } else {
+                    rightmargin = pos;
+                    pos = leftmargin + ((rightmargin - leftmargin - 1)*qrand())/RAND_MAX;
+                }
+                if((leftmargin-rightmargin)*(leftmargin-rightmargin)<5)
+                {
+                    XP = ((pos - xBegin)*100)/(xEnd-xBegin);
+                    return true;
+                }
+                postype = checkXPPatternPartial(image, pos);
+                if(false){
+
+    /*
+                    QDir current_dir = QDir::current();
+
+                    QString test_file_label = "test";
+                    QTextStream test_file_label_stream(&test_file_label);
+                    test_file_label_stream << barID << ".csv";
+                    QFile* testFile = new QFile(test_file_label);
+                    QTextStream* fStream;
+                    if(testFile->open(QFile::WriteOnly)){
+                        fStream = new QTextStream(testFile);
+
+                        #ifdef Q_WS_WIN
+                            fStream->setCodec("Windows-1251");
+                        // Под остальными ОС - utf8
+                        #else
+                            fStream->setCodec("utf-8");
+                        #endif
+
+                        if(fStream && fStream->device()){
+                            *fStream << QDir::currentPath() << "\r\n";
+                        }
+                        testFile->close();
+
+                    }
+    */
+
+
+                    QDir::current().mkpath("img");
+                    QDir::setCurrent("img");
+
+                    switch(barID){
+                    case 4:
+                        QDir::current().mkpath("HP");
+                        QDir::setCurrent("HP");
+                        break;
+                    case 5:
+                        QDir::current().mkpath("MP");
+                        QDir::setCurrent("MP");
+                        break;
+                    default:
+                        QDir::current().mkpath("other");
+                        QDir::setCurrent("other");
+                        break;
+                    }
+
+
+                    switch(postype){
+                    case 0:
+                        QDir::current().mkpath("color");
+                        QDir::setCurrent("color");
+                        break;
+                    case 1:
+                        QDir::current().mkpath("bkcolor");
+                        QDir::setCurrent("bkcolor");
+                        break;
+                    default:
+                        QDir::current().mkpath("none");
+                        QDir::setCurrent("none");
+                        break;
+                    }
+
+
+                    //image.setPixelColor(pos,yXP, QColor(128, 128, 128));
+
+     //               sample = image.copy(pos-10,yXP-2,20,5);
+     //               sample.setPixelColor(9,0, QColor(255, 255, 255));
+     //               sample.setPixelColor(11,0, QColor(255, 255, 255));
+     //               sample.setPixelColor(9,4, QColor(255, 255, 255));
+     //               sample.setPixelColor(11,4, QColor(255, 255, 255));
+                    QImage sample;
+
+                    sample = image.copy(xBegin,yXP-2,xEnd - xBegin,5);
+                    int x1 = pos - xBegin - 1;
+                    int x2 = x1 + 2;
+                    if(x1 > 0){
+                        sample.setPixelColor(x1 ,0, QColor(255, 255, 255));
+                        sample.setPixelColor(x1 ,4, QColor(255, 255, 255));
+                    }
+                    if(x2 <  sample.width()){
+                        sample.setPixelColor(x2 ,0, QColor(255, 255, 255));
+                        sample.setPixelColor(x2 ,4, QColor(255, 255, 255));
+                    }
+
+                    QString file_label = "i";
+                    QTextStream file_label_stream(&file_label);
+                    int fnum = qrand();
+                    file_label_stream  << fnum << ".png";
+
+
+                    sample.save(file_label);
+                    barpattern.save("0pattern.png");
+
+                    QDir::setCurrent("..");
+                    QDir::setCurrent("..");
+                    QDir::setCurrent("..");
+
+                }
+            }
+            XP = ((leftmargin - xBegin)*100)/(xEnd-xBegin);
+        } else {   //bkcolor or err
+            int grey_c[5];
+            for(int i = -2; i < 3; i++ ){
+                QColor img_pix = image.pixelColor(QPoint(pos,yXP+i));
+                grey_c[i+2] = (2126*img_pix.red()+7152*img_pix.green()+722*img_pix.blue())/10000;
+            }
+            bool dif01 = ((grey_c[1] - grey_c[0]) > 7) || ((grey_c[1] - grey_c[0]) < -8);
+            bool dif12 = (grey_c[2] - grey_c[1]) < -8;
+            bool dif23 = (grey_c[3] - grey_c[2]) > 3;
+
+            if(dif01 && dif12 && dif23){
+                XP = 0; //bkcolor
+            } else {
+                XP = XP_ERR;  //err
+            }
+        }
+        bool err1 = ((postype == 1) && (XP == XP_ERR));
+        bool err2 = ((postype == -1) && (XP == 0));
+        if(err1) postype = -1;
+        if(err2) postype =  1;
+
+        if((bEnableBarSampling) && (qrand() < 100 || (err1 && (barID == 4)) || err2)){
+            QDir::current().mkpath("img");
+            QDir::setCurrent("img");
+
+            switch(barID){
+            case 4:
+                QDir::current().mkpath("HP");
+                QDir::setCurrent("HP");
+                break;
+            case 5:
+                QDir::current().mkpath("MP");
+                QDir::setCurrent("MP");
+                break;
+            default:
+                QDir::current().mkpath("other");
+                QDir::setCurrent("other");
+                break;
+            }
+
+
+            switch(postype){
+            case 0:
+                QDir::current().mkpath("color");
+                QDir::setCurrent("color");
+                break;
+            case 1:
+                QDir::current().mkpath("bkcolor");
+                QDir::setCurrent("bkcolor");
+                break;
+            default:
+                QDir::current().mkpath("none");
+                QDir::setCurrent("none");
+                break;
+            }
+
+
+            //image.setPixelColor(pos,yXP, QColor(128, 128, 128));
+
+            QImage sample;
+
+            sample = image.copy(xBegin,yXP-2,xEnd - xBegin,5);
+            int x1 = pos - xBegin - 1;
+            int x2 = x1 + 2;
+            if(x1 > 0){
+                sample.setPixelColor(x1 ,0, QColor(255, 255, 255));
+                sample.setPixelColor(x1 ,4, QColor(255, 255, 255));
+            }
+            if(x2 <  sample.width()){
+                sample.setPixelColor(x2 ,0, QColor(255, 255, 255));
+                sample.setPixelColor(x2 ,4, QColor(255, 255, 255));
+            }
+
+            QString file_label = "i";
+            if(err1 || err2) file_label = "e";
+            QTextStream file_label_stream(&file_label);
+            int fnum = qrand();
+            file_label_stream  << fnum << ".png";
+
+
+            sample.save(file_label);
+            barpattern.save("0pattern.png");
+
+            QDir::setCurrent("..");
+            QDir::setCurrent("..");
+            QDir::setCurrent("..");
+
+            int grey_c[5];
+            for(int i = -2; i < 3; i++ ){
+                QColor img_pix = image.pixelColor(QPoint(pos,yXP+i));
+                grey_c[i+2] = (2126*img_pix.red()+7152*img_pix.green()+722*img_pix.blue())/10000;
+            }
+            QString test_file_label = "xBegin";
+            QTextStream test_file_label_stream(&test_file_label);
+            test_file_label_stream << barID << " " << postype << ".csv";
+            QFile* testFile = new QFile(test_file_label);
+            QTextStream* fStream;
+            if(testFile->open(QFile::WriteOnly| QIODevice::Append)){
+                fStream = new QTextStream(testFile);
+                #ifdef Q_WS_WIN
+                    fStream->setCodec("Windows-1251");
+                // Под остальными ОС - utf8
+                #else
+                    fStream->setCodec("utf-8");
+                #endif
+
+                if(fStream && fStream->device()){
+                    for(int i = 0; i < 5; i++){
+                        *fStream << grey_c[i] << ";";
+                    }
+                    *fStream << file_label << ";"<< err1 << ";"<< err2 << "\r\n";
+                }
+                testFile->close();
+            }
+        }
+    } else {
+        XP = checkXPBarPartial(image, xBegin, xEnd);
+    }
+    return(true);
+}
+
+//Compare pixels at 'pos' position with pattern
+int XPBar::checkXPPatternPartial(QImage image, int pos){
+    int valid=0;
+
+    for(int j = 0; j < 2; j++ ){
+        valid = 0;
+        for(int i = -1; i < 2; i++ ){
+            QColor img_pix = image.pixelColor(QPoint(pos,yXP+i));
+            QColor pattern_pix = barpattern.pixelColor(QPoint(j, 2+i));
+            int deviation_r = (img_pix.red() > pattern_pix.red())? img_pix.red() - pattern_pix.red() : pattern_pix.red() - img_pix.red();
+            int deviation_g = (img_pix.green() > pattern_pix.green())? img_pix.green() - pattern_pix.green() : pattern_pix.green() - img_pix.green();
+            int deviation_b = (img_pix.blue() > pattern_pix.blue())? img_pix.blue() - pattern_pix.blue() : pattern_pix.blue() - img_pix.blue();
+            if( (deviation_r <3+j*2) && (deviation_g <3+j*2) && (deviation_b <3+j*2)) valid++;
+            if(valid > 0)  return j;
+        }
+    }
+    return -1;
+}
+
+//submethod for calculating XP for HPCPMP
+int XPBar::checkXPBarPartial(QImage image, int begin, int end){
+    int barsize = end-begin;
+    int max = 0;
+    int position = begin;
+    int counter = 0;
+    int validator = 0;
+
+    for(int j=begin;j<end;j++) {
+        if(findPixel(image, j, 1, barcolor, 5)){
             counter++;
             validator++;
             max = (counter > max)? counter: max;
             position = (counter == max)? j:position;
-        } else if(findPixel(image, j, 2, barbkclr, 5)){
+        } else if(findPixel(image, j, 1, barbkclr, 5)){
             counter--;
             validator++;
             max = (counter > max)? counter: max;
             position = (counter == max)? j:position;
         }
     }
+    position = (position <begin )? begin:position;
+    position = (position >end )? end:position;
 
-     XP = ((position- xBegin)*100)/barsize;
+   return (validator < 2)?XP_ERR:((position- begin)*100)/barsize;
+}
 
-    if(validator < barsize/20){
-         if(barID == idMobHP || barID == idMobMP ){
-             XP = 0;
-         } else {
-             XP = XP_ERR;
-         }
+// Compare random points between image and pattern
+bool XPBar::checkPattern(QPoint topleft, QImage* image, QImage* pattern, int num, int treshold, int deviation){
+    if(!(topleft.rx() > 0 && topleft.ry() > 0)) return false;
+    int         notvalid = 0;
+    for(int i=0; i<num; i ++)
+    {
+        int x = (pattern->width()*qrand())/RAND_MAX;
+        int y = (pattern->height()*qrand())/RAND_MAX;
+        QColor img_pix = image->pixelColor(QPoint(x+topleft.rx(),y+topleft.ry()));
+        QColor pattern_pix = pattern->pixelColor(QPoint(x,y));
+        if(!(pattern_pix.red() == 255 && pattern_pix.green() == 255 &&pattern_pix.blue() == 255)){
+            int deviation_r = (img_pix.red() > pattern_pix.red())? img_pix.red() - pattern_pix.red() : pattern_pix.red() - img_pix.red();
+            int deviation_g = (img_pix.green() > pattern_pix.green())? img_pix.green() - pattern_pix.green() : pattern_pix.green() - img_pix.green();
+            int deviation_b = (img_pix.blue() > pattern_pix.blue())? img_pix.blue() - pattern_pix.blue() : pattern_pix.blue() - img_pix.blue();
+            if( (deviation_r >deviation) || (deviation_g >deviation) || (deviation_b >deviation)) notvalid++;
+            if(notvalid > treshold)  return false;
+        }
     }
-    status = BAR_ON;
-    return(true);
+    return true;
 }
 
 bool XPBar::getStatus(){return status;}

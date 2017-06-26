@@ -1,9 +1,9 @@
 #include "keyconditionsset.h"
 
-char* KeyConditionsSet::DefaultKeyDB[48] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8","F9","F10","F11",                   "F12",
+const char* KeyConditionsSet::DefaultKeyDB[48] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8","F9","F10","F11",                   "F12",
                                     "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8", "9", "0",  "-",                     "=",
-                                    "Q",  "W",  "E",  "R",  "T",  "Y",  "U",  "I", "O", "P",  "[",                     "]",
-                                    "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8","P9","P0", "KEYPAD_DOT_AND_DELETE", "KEYPAD_SLASH"};
+                                    "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8","P9","P0", "KEYPAD_DOT_AND_DELETE", "KEYPAD_SLASH",
+                                    "Q",  "W",  "E",  "R",  "T",  "Y",  "U",  "I", "O", "P",  "ESCAPE", "MOUSE_LEFT"};
 
 
 
@@ -70,8 +70,12 @@ int KeyConditionsSet::LoadConfig(QString file_name){
 
         for(int j = 0; j<CONDBNUM; j++){
             var = topic;
-            varstream  << "$FGroupEnable" <<j;
-            condition[i]->setGroupState(j, sett.value(var.toStdString().c_str(), 1).toBool());
+            //varstream  << "$FGroupEnable" <<j;
+            varstream  << KeyCondition::conditionb_tag[j];
+            bool default_val = 0;
+            if(j < idCheckStar) default_val = 1;
+            //condition[i]->conditionb[j] = sett.value(var.toStdString().c_str(), default_val).toBool();
+            condition[i]->setConditionB(j, sett.value(var.toStdString().c_str(), default_val).toBool());
         }
 
         var = topic;
@@ -83,6 +87,7 @@ int KeyConditionsSet::LoadConfig(QString file_name){
         var = topic;
         varstream  << "$Buttons";
         condition[i]->KeyString = sett.value(var.toStdString().c_str(), ".").toString();
+        condition[i]->KeyCode = condition[i]->string2keycode(condition[i]->KeyString);
         qDebug("\"%s\",", condition[i]->KeyString.toStdString().c_str());
     }
 
@@ -129,8 +134,8 @@ int KeyConditionsSet::SaveConfig(QString file_name){
 
         for(int j = 0; j<CONDBNUM; j++){
             var = topic;
-            varstream  << "$FGroupEnable" <<j;
-            sett.setValue(var.toStdString().c_str(), condition[i]->getGroupState(j));
+            varstream  << KeyCondition::conditionb_tag[j];
+            sett.setValue(var.toStdString().c_str(), condition[i]->getConditionB(j));
         }
         var = topic;
         varstream  << "$FCtrl";
@@ -140,10 +145,7 @@ int KeyConditionsSet::SaveConfig(QString file_name){
         sett.setValue(var.toStdString().c_str(), condition[i]->shift);
         var = topic;
         varstream  << "$Buttons";
-//        condition[i]->KeyString = sett.value(var.toStdString().c_str(), ".").toString();
         sett.setValue(var.toStdString().c_str(), condition[i]->KeyString);
-//        qDebug("\"%s\",", condition[i]->KeyString.toStdString().c_str());
     }
-
     return true;
 }

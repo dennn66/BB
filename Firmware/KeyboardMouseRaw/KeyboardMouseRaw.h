@@ -60,6 +60,8 @@
 
 		#define HIGH		1
 		#define LOW		0
+		
+		#define CONFIG_HEADER_ADDRESS 0
 
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
@@ -79,6 +81,33 @@
 		#define DEVICE_STATUS_STATE      0
 		#define DEVICE_STATUS_ACTIVE     1
 		
+				/* Return status of device */
+		// 0 - Device Status
+		// 1 - Device Mode
+		// 2 - Group 0 status
+		// 3 - Group 1 status
+		// 4 - Group 2 status
+		// 5 - Group 3 status
+		// 6 - Ctrl status
+		// 7 - Shift status
+		#define DEVICE_STATUS	0
+		#define DEVICE_MODE		1
+		#define GROUP_0			2
+		#define GROUP_1			3
+		#define GROUP_2			4
+		#define GROUP_3			5
+		#define DEVICE_CTRL		6
+		#define DEVICE_SHIFT	7
+		#define DEVICE_MASK      0b11111111
+
+		
+		
+#define USB_MOUSE_BTN_MASK      0x1F
+#define USB_MOUSE_BTN_LEFT      0
+#define USB_MOUSE_BTN_RIGHT     1
+#define USB_MOUSE_BTN_MIDDLE    2
+#define USB_MOUSE_BTN_4th       3
+#define USB_MOUSE_BTN_5th       4
 
 
 	/* Function Prototypes: */
@@ -94,9 +123,11 @@
 		
 		void led_indicator_task(uint16_t time_delta);
 		void host_timeout_task(uint16_t time_delta);
+		void toggleShowRcvStat(void) ;
 
+		void setDebugFlag(int8_t state);
+		uint8_t get_groupsStatus(void);
 
-		uint8_t get_activeState(void);
 		uint8_t get_deviceState(void);
 		uint8_t* get_newMouseHIDReportBuffer(void);
 		uint8_t* get_newKeyboardHIDReportBuffer(void);
@@ -106,6 +137,8 @@
 		void set_expectMouseReport(uint8_t state);
 		
 		void find_mouse(void);
+		
+		void Jump_To_Bootloader(void);
 
 		bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo,
 		                                         uint8_t* const ReportID,
@@ -121,16 +154,24 @@
 
 		enum Commands_t
 		{
-				CMD_WRITE_CONFIG = 0, /** Write active config to EEPROM */
-				CMD_READ_CONFIG = 1, /** Load config from EEPROM */
+				CMD_UNUSED1 = 0, /** Write active config to EEPROM */
+				CMD_UNUSED2 = 1, /** Load config from EEPROM */
 				CMD_ADD_NODE = 2, /** Add button to active config */
 				CMD_DELETE_NODE = 3, /** Delete button from active config */
 				CMD_DELETE_ALL = 4, /** Delete all button from active config  */
-				CMD_SET_MODIFIER = 5, /** set active config Modifier  */
-				CMD_SET_HPCPMP = 6, /** set param values  */
-				CMD_ADD_NODE_CONDITION = 7, /** set param values  */
-				CMD_SET_MODE = 8, /** set mode  */
+				CMD_JUMP_TO_BOOTLOADER = 5, /** Jump to bootloader */
+				CMD_UNUSED3 = 6, /** set param values  */
+				CMD_UNUSED4 = 7, /** set param values  */
+				CMD_UNUSED5 = 8, /** set star state and type of target, old version  */
+				CMD_SET_SKILL_STATE = 9, /** set skill state, new version  */
 		};
+		
+		
+#define SERVICE_CONFIG     0     /**< set Device config */
+#define SERVICE_MOUSE      1     /**< set Mouse msg */
+#define SERVICE_DEVICE     2     /**< set Device operating mode */
+#define SERVICE_KEYBOARD   3     /**< set Keyboard msg */
+
 		
 
 #endif
